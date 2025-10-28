@@ -14,13 +14,8 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100),
     avatar_url VARCHAR(500),
-    dietary_preferences JSONB DEFAULT '{
-        "diet_type": "omnivore",
-        "allergens": [],
-        "dislikes": [],
-        "max_prep_time": 60,
-        "household_size": 2
-    }'::jsonb,
+    
+    -- Métadonnées
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -28,6 +23,71 @@ CREATE TABLE users (
 
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_dietary ON users USING GIN(dietary_preferences);
+
+
+-- ============================================================================
+--                    1. CRÉATION DE LA TABLE USER_PREFERENCES
+-- ============================================================================
+
+CREATE TABLE user_preferences (
+    user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Régime alimentaire
+    diet_type VARCHAR(20) CHECK (diet_type IN ('omnivore', 'vegetarian', 'vegan', 'pescatarian', 'flexitarian')),
+    
+    -- Allergies et intolérances
+    allergens TEXT[] DEFAULT ARRAY[]::TEXT[],
+    -- Valeurs possibles : 'gluten', 'lactose', 'nuts', 'peanuts', 'shellfish', 'fish', 'eggs', 'soy', 'sesame'
+    
+    -- Restrictions
+    avoid_gluten BOOLEAN DEFAULT FALSE,
+    avoid_lactose BOOLEAN DEFAULT FALSE,
+    avoid_pork BOOLEAN DEFAULT FALSE,
+    avoid_alcohol BOOLEAN DEFAULT FALSE,
+    
+    -- Préférences culinaires
+    preferred_cuisine_types TEXT[] DEFAULT ARRAY[]::TEXT[],
+    -- Ex: ['french', 'italian', 'asian', 'mediterranean', 'indian', 'mexican']
+    preferred_cooking_methods TEXT[] DEFAULT ARRAY[]::TEXT[],
+    -- Ex: ['oven', 'stovetop', 'steamed', 'grilled', 'raw', 'slow_cooker']
+    disliked_ingredients BIGINT[] DEFAULT ARRAY[]::BIGINT[],
+    -- Array d'IDs d'ingrédients (relation souple avec table ingredients)
+    favorite_ingredients BIGINT[] DEFAULT ARRAY[]::BIGINT[],
+    -- Array d'IDs d'ingrédients préférés
+    
+    -- Contraintes de temps
+    max_prep_time_minutes INTEGER CHECK (max_prep_time_minutes > 0 AND max_prep_time_minutes <= 300),
+    -- Temps de préparation maximum accepté
+    max_cook_time_minutes INTEGER CHECK (max_cook_time_minutes > 0 AND max_cook_time_minutes <= 480),
+    -- Temps de cuisson maximum accepté
+    
+    -- Batch cooking
+    batch_cooking_enabled BOOLEAN DEFAULT TRUE,
+    preferred_batch_days TEXT[] DEFAULT ARRAY['sunday']::TEXT[],
+    -- Ex: ['sunday', 'wednesday'] - jours de préparation
+    batch_portions_target INTEGER DEFAULT 4 CHECK (batch_portions_target BETWEEN 1 AND 12),
+    -- Nombre de portions à préparer par session
+    
+    -- Budget et courses
+    weekly_budget_euros DECIMAL(6,2) CHECK (weekly_budget_euros >= 0),
+    prefer_seasonal BOOLEAN DEFAULT TRUE,
+    prefer_local BOOLEAN DEFAULT FALSE,
+    prefer_organic BOOLEAN DEFAULT FALSE,
+    
+    -- Niveau de compétence
+    cooking_skill_level VARCHAR(20) DEFAULT 'intermediate' 
+        CHECK (cooking_skill_level IN ('beginner', 'intermediate', 'advanced', 'expert')),
+    
+    -- Métadonnées
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index pour recherches fréquentes
+CREATE INDEX idx_user_pref_diet ON user_preferences(diet_type);
+CREATE INDEX idx_user_pref_skill ON user_preferences(cooking_skill_level);
+CREATE INDEX idx_user_pref_batch ON user_preferences(batch_cooking_enabled);
+
 
 -- ============================================================================
 --                    TABLE 2 : INGREDIENTS (Référentiel)
@@ -464,6 +524,8 @@ CREATE TRIGGER update_custom_recipes_updated_at BEFORE UPDATE ON user_custom_rec
 CREATE TRIGGER update_shopping_lists_updated_at BEFORE UPDATE ON shopping_lists 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON user_preferences
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================================
 --         FONCTION : Générer liste de courses (version référentiel)
