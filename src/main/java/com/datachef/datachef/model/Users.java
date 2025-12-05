@@ -6,7 +6,11 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -17,8 +21,9 @@ import java.util.Date;
 public class Users {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "UUID")
+    private UUID id;
 
     @Column(name = "username", nullable = false, unique = true)
     private String username;
@@ -32,14 +37,17 @@ public class Users {
     @Column(name = "avatar_url")
     private String avatar_url;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserRating> ratings = new ArrayList<>();
+
     @Column(name = "is_active")
     private Boolean is_active = true;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Date created_at;
+    private OffsetDateTime created_at;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private Date updated_at;
+    private OffsetDateTime updated_at;
 }

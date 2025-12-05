@@ -1,6 +1,5 @@
 package com.datachef.datachef.model;
 
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +9,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-public class CookingMethod {
+public class DietType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,6 +22,3 @@ public class CookingMethod {
     @Column(nullable = false, unique = true)
     private String label;
 }
-
-
-
