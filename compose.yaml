@@ -1,0 +1,55 @@
+services:
+  app:
+    container_name: "datachef-api"
+    image: datachef-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    environment:
+      - SPRING_PROFILES_ACTIVE=development
+      - DB_HOST_DEV=${DB_HOST_DEV}
+      - DB_PORT_DEV=${DB_PORT_DEV}
+      - DB_NAME_DEV=${DB_NAME_DEV}
+      - DB_USER_DEV=${DB_USER_DEV}
+      - DB_PASSWORD_DEV=${DB_PASSWORD_DEV}
+    volumes:
+      - maven-repo:/root/.m2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - datachef-network
+    restart: unless-stopped
+
+  postgres:
+    image: 'postgres:latest'
+    container_name: 'datachef-postgres'
+    environment:
+      - POSTGRES_DB=${DB_NAME_DEV}
+      - POSTGRES_USER=${DB_USER_DEV}
+      - POSTGRES_PASSWORD=${DB_PASSWORD_DEV}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - datachef-network
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U dev -d datachef" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  datachef-network:
+    driver: bridge
+
+volumes:
+  maven-repo:
+  postgres-data:
+    driver: local
