@@ -2,6 +2,7 @@ package com.datachef.datachef.model;
 
 
 import com.datachef.datachef.Enum.NecessityLevel;
+import com.datachef.datachef.Enum.UtensilCategory;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +21,7 @@ import java.util.UUID;
                 @Index(name = "idx_utensils_necessity", columnList = "necessity_level")
         }
 )
-public class Ustensil {
+public class Utensil {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,6 +34,9 @@ public class Ustensil {
     private String description;
 
     @Enumerated(EnumType.STRING)
+    private UtensilCategory category;
+
+    @Enumerated(EnumType.STRING)
     private NecessityLevel necessityLevel;
 
     private boolean isActive = true;
@@ -40,5 +44,5 @@ public class Ustensil {
     private String imageUrl;
 
     @OneToMany(mappedBy = "utensil")
-    private List<RecipeUstensil> recipeUtensils = new ArrayList<>();
+    private List<RecipeUtensil> recipeUtensils = new ArrayList<>();
 }

@@ -118,7 +118,7 @@ public class UserCustomRecipe {
 
     @OneToMany(mappedBy = "customRecipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<UserCustomRecipeUstensil> recipeUtensils = new ArrayList<>();
+    private List<UserCustomRecipeUtensil> recipeUtensils = new ArrayList<>();
 
     @OneToMany(mappedBy = "customRecipe")
     @Builder.Default

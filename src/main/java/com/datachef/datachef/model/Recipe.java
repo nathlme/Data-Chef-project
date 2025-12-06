@@ -1,11 +1,15 @@
 package com.datachef.datachef.model;
 
 
+import com.datachef.datachef.Enum.Difficulty;
+import com.datachef.datachef.data.RecipeInstruction;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -48,6 +52,15 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe")
     private List<UserRating> ratings = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    private Difficulty difficulty;
+
+    private Short servings = 4;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "instructions", columnDefinition = "jsonb", nullable = false)
+    private List<RecipeInstruction> instructions = new ArrayList<>();
+
     @Column(
             name = "total_time_minutes",
             insertable = false,
@@ -78,7 +91,7 @@ public class Recipe {
     private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecipeUstensil> recipeUtensils = new ArrayList<>();
+    private List<RecipeUtensil> recipeUtensils = new ArrayList<>();
 
     private String imageUrl;
 

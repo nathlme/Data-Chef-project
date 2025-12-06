@@ -3,6 +3,8 @@ package com.datachef.datachef.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -31,19 +33,13 @@ public class UserCustomRecipeIngredient {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "custom_recipe_id",
-            nullable = false,
-            foreignKey = @ForeignKey(foreignKeyDefinition = "FOREIGN KEY (custom_recipe_id) REFERENCES user_custom_recipes(id) ON DELETE CASCADE")
-    )
+    @JoinColumn(name = "custom_recipe_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private UserCustomRecipe customRecipe;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "ingredient_id",
-            nullable = false,
-            foreignKey = @ForeignKey(foreignKeyDefinition = "FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE RESTRICT")
-    )
+    @JoinColumn(name = "ingredient_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     private Ingredient ingredient;
 
     @Column(nullable = false, precision = 10, scale = 2)

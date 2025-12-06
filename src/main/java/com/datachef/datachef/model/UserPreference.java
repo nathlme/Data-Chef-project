@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -21,7 +22,6 @@ import java.util.UUID;
 @Setter
 @Table(name = "user_preference",
 indexes = {
-        @Index(name = "idx_user_pref_diet", columnList = "user_diet_type"),
         @Index(name = "idx_user_pref_skill", columnList = "cooking_skill_level"),
         @Index(name = "idx_user_pref_batch", columnList = "batch_cooking_enabled")
 })
@@ -93,7 +93,7 @@ public class UserPreference {
 
     private int BatchPortionTarget = 4;
 
-    private DecimalFormat WeeklyBudgetEuros;
+    private BigDecimal WeeklyBudgetEuros;
 
     private boolean PreferSeasonal = false;
 
