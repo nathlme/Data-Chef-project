@@ -15,6 +15,10 @@ services:
       - DB_NAME_DEV=${DB_NAME_DEV}
       - DB_USER_DEV=${DB_USER_DEV}
       - DB_PASSWORD_DEV=${DB_PASSWORD_DEV}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=86400000
+    env_file:
+      - .env
     volumes:
       - maven-repo:/root/.m2
     depends_on:

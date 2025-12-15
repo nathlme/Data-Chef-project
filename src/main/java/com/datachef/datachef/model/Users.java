@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class Users {
     private String email;
 
     @Column(name = "password_hash", nullable = false)
-    private String password_hash;
+    private String passwordHash;
 
     @Column(name = "avatar_url")
     private String avatar_url;
@@ -43,6 +44,8 @@ public class Users {
     @Column(name = "is_active")
     private Boolean is_active = true;
 
+    private String role = "USER";
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime created_at;
@@ -50,4 +53,6 @@ public class Users {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updated_at;
+
+
 }
