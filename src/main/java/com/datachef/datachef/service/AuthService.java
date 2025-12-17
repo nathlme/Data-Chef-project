@@ -1,8 +1,10 @@
 package com.datachef.datachef.service;
 
-import com.datachef.datachef.dto.AuthResponse;
+
+import com.datachef.datachef.dto.AuthTokens;
 import com.datachef.datachef.dto.LoginRequest;
 import com.datachef.datachef.dto.RegisterRequest;
+import com.datachef.datachef.model.RefreshToken;
 import com.datachef.datachef.model.Users;
 import com.datachef.datachef.repository.UserRepository;
 import com.datachef.datachef.security.JwtUtil;
@@ -26,9 +28,12 @@ public class AuthService {
     private JwtUtil jwtUtil;
 
     @Autowired
+    private RefreshTokenService refreshService;
+
+    @Autowired
     private AuthenticationManager authenticationManager;
 
-    public AuthResponse register(RegisterRequest request) {
+    public AuthTokens register(RegisterRequest request) {
         System.out.println("Register attempt for username: " + request.getUsername());
 
         if (usersRepository.existsByUsername(request.getUsername())) {
@@ -46,25 +51,24 @@ public class AuthService {
         user.setRole("USER");
         user.setIs_active(true);
 
-        System.out.println("Saving user...");
         user = usersRepository.save(user);
-        System.out.println("User saved with ID: " + user.getId());
 
         String token = jwtUtil.generateToken(user.getUsername());
-        System.out.println("Token generated");
+        RefreshToken refreshToken = refreshService.createRefreshToken(user);
+        String rt = refreshToken.getToken();
 
-        return new AuthResponse(token, user.getUsername(), user.getRole());
+
+        return new AuthTokens(token,rt, user.getUsername(), user.getRole());
     }
 
-    public AuthResponse login(LoginRequest request) {
-        System.out.println("Login attempt for username: " + request.getUsername());
+    public AuthTokens login(LoginRequest request) {
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
         } catch (AuthenticationException e) {
-            System.err.println("Authentication failed: " + e.getMessage());
+
             throw new RuntimeException("Invalid credentials");
         }
 
@@ -76,8 +80,28 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(user.getUsername());
+        RefreshToken refreshToken = refreshService.createRefreshToken(user);
+        String rt = refreshToken.getToken();
         System.out.println("Login successful, token generated");
 
-        return new AuthResponse(token, user.getUsername(), user.getRole());
+        return new AuthTokens(token,rt, user.getUsername(), user.getRole());
     }
+
+    public AuthTokens refreshToken(String refreshTokenValue) {
+
+        RefreshToken oldToken = refreshService.validate(refreshTokenValue);
+
+        Users user = oldToken.getUser();
+
+        refreshService.revoke(oldToken);
+
+        RefreshToken rt = refreshService.createRefreshToken(user);
+
+        String accessToken = jwtUtil.generateToken(user.getUsername());
+
+        return new AuthTokens(accessToken,rt.getToken(),user.getUsername(), user.getRole());
+
+    }
+
+
 }

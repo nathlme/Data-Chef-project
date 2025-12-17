@@ -1,19 +1,28 @@
 package com.datachef.datachef.security;
 
 
+import com.datachef.datachef.model.RefreshToken;
+import com.datachef.datachef.model.Users;
+import com.datachef.datachef.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
+
+import static java.util.concurrent.TimeUnit.DAYS;
 
 @Component
 public class JwtUtil {
@@ -24,8 +33,8 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    @Value("${jwt.refresh.validity}")
-    private Long refreshValidity;
+    @Autowired
+    private RefreshTokenRepository  refreshTokenRepository;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
@@ -61,10 +70,6 @@ public class JwtUtil {
         return createToken(claims, username, expiration);
     }
 
-    public String generateRefreshToken(String username){
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username,refreshValidity);
-    }
 
     private String createToken(Map<String, Object> claims, String subject, Long expiration) {
         return Jwts.builder()
@@ -75,6 +80,7 @@ public class JwtUtil {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);

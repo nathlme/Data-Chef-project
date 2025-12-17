@@ -57,7 +57,6 @@ public class Ingredient {
     // Substitutions possibles (array d'IDs)
     @Column(name = "substitutes", columnDefinition = "BIGINT[]")
     private List<Long> substitutes = new ArrayList<>();
-    // Ex: [id_tofu, id_tempeh] pour remplacer viande
 
     // Métadonnées
     @Column(name = "is_active", nullable = false)

@@ -1,16 +1,18 @@
 package com.datachef.datachef.controller;
 
-import com.datachef.datachef.dto.AuthResponse;
-import com.datachef.datachef.dto.LoginRequest;
-import com.datachef.datachef.dto.RefreshTokenRequest;
-import com.datachef.datachef.dto.RegisterRequest;
+import com.datachef.datachef.config.RefreshCookieConfig;
+import com.datachef.datachef.dto.*;
+import com.datachef.datachef.exception.ExpiredRefreshTokenException;
+import com.datachef.datachef.exception.InvalidRefreshTokenException;
 import com.datachef.datachef.security.JwtUtil;
 import com.datachef.datachef.service.AuthService;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,23 +22,32 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private RefreshCookieConfig cookieConfig;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            System.out.println("Received register request for: " + request.getUsername());
-            AuthResponse response = authService.register(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+            AuthTokens response = authService.register(request);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE,
+                            cookieConfig.refreshCookie(response.refreshToken()))
+                    .body(response.accessToken());
+
         } catch (RuntimeException e) {
-            System.err.println("Registration error: " + e.getMessage());
+
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+
         } catch (Exception e) {
-            System.err.println("Unexpected error during registration: " + e.getMessage());
+
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("message", "An error occurred");
@@ -47,16 +58,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            System.out.println("Received login request for: " + request.getUsername());
-            AuthResponse response = authService.login(request);
-            return ResponseEntity.ok(response);
+
+            AuthTokens response = authService.login(request);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE,
+                            cookieConfig.refreshCookie(response.refreshToken()))
+                    .body(response.accessToken());
         } catch (RuntimeException e) {
-            System.err.println("Login error: " + e.getMessage());
+
             Map<String, String> error = new HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         } catch (Exception e) {
-            System.err.println("Unexpected error during login: " + e.getMessage());
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("message", "An error occurred");
@@ -65,17 +78,31 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
-        String refreshToken = request.getRefreshToken();
-        if (jwtUtil.validateToken(refreshToken, request.getUserDetails())) {
-            String username = jwtUtil.extractUsername(refreshToken);
-            String newAccessToken = jwtUtil.generateToken(username);
+    public ResponseEntity<?> refreshToken(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
 
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("accessToken", newAccessToken);
-            return ResponseEntity.ok(tokens);
+        if(refreshToken == null){
+            return logoutResponse();
         }
-        return ResponseEntity.status(403).body("Invalid refresh token");
+
+        try{
+            AuthTokens response = authService.refreshToken(refreshToken);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE,
+                            cookieConfig.refreshCookie(response.refreshToken()))
+                    .body(response.accessToken());
+
+        }catch(ExpiredRefreshTokenException | InvalidRefreshTokenException e){
+
+            return logoutResponse();
+        }
+
+    }
+
+    private ResponseEntity<?> logoutResponse() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header(HttpHeaders.SET_COOKIE, cookieConfig.deleteRefreshCookie())
+                .build();
     }
 }
 

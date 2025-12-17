@@ -1,12 +1,7 @@
 package com.datachef.datachef.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@Data
-@AllArgsConstructor
-public class AuthResponse {
-    private String token;
-    private String username;
-    private String role;
-}
+public record AuthResponse(
+        String accessToken,
+        String username,
+        String role
+) {}
