@@ -103,5 +103,13 @@ public class AuthService {
 
     }
 
+    public void logout(String refreshToken) {
+        RefreshToken oldToken = refreshService.validate(refreshToken);
+        refreshService.revoke(oldToken);
+    }
+
+    public void logoutFromAll(Users user){
+        refreshService.revokeForAll(user);
+    }
 
 }

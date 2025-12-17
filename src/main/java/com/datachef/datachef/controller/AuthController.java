@@ -4,6 +4,7 @@ import com.datachef.datachef.config.RefreshCookieConfig;
 import com.datachef.datachef.dto.*;
 import com.datachef.datachef.exception.ExpiredRefreshTokenException;
 import com.datachef.datachef.exception.InvalidRefreshTokenException;
+import com.datachef.datachef.model.Users;
 import com.datachef.datachef.security.JwtUtil;
 import com.datachef.datachef.service.AuthService;
 import org.apache.coyote.Response;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -98,6 +100,38 @@ public class AuthController {
         }
 
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+        try {
+
+            authService.logout(refreshToken);
+
+        }catch(Exception e){
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookieConfig.deleteRefreshCookie())
+                .body("Logged out from this device");
+
+    }
+
+    @PostMapping("/logout/all")
+    public ResponseEntity<?> logoutFromAll(@AuthenticationPrincipal Users user){
+        try{
+            authService.logoutFromAll(user);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookieConfig.deleteRefreshCookie())
+                .body("Logged out from all devices");
+    }
+
+
 
     private ResponseEntity<?> logoutResponse() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

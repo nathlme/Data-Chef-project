@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -47,6 +48,13 @@ public class RefreshTokenService {
     public void revoke(RefreshToken token) {
         token.setRevoked(true);
         refreshTokenRepository.save(token);
+    }
+
+    public void revokeForAll(Users user){
+        List<RefreshToken> refreshTokenList = refreshTokenRepository.findByUserAndRevokedFalse(user);
+        for(RefreshToken refreshToken : refreshTokenList){
+            revoke(refreshToken);
+        }
     }
 
 }

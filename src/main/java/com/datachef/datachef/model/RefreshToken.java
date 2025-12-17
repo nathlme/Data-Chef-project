@@ -25,7 +25,7 @@ public class RefreshToken {
     @Column(nullable = false)
     private boolean revoked = false;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private Users user;
 
