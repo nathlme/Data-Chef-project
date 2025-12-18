@@ -1,15 +1,15 @@
 package com.datachef.datachef.controller;
 
 import com.datachef.datachef.config.RefreshCookieConfig;
-import com.datachef.datachef.dto.*;
+import com.datachef.datachef.dto.auth.AuthTokens;
+import com.datachef.datachef.dto.auth.LoginRequest;
+import com.datachef.datachef.dto.auth.RegisterRequest;
 import com.datachef.datachef.exception.ExpiredRefreshTokenException;
 import com.datachef.datachef.exception.InvalidRefreshTokenException;
 import com.datachef.datachef.model.Users;
 import com.datachef.datachef.security.JwtUtil;
 import com.datachef.datachef.service.AuthService;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

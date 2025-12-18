@@ -1,6 +1,6 @@
 package com.datachef.datachef.exception;
 
-import com.datachef.datachef.dto.ErrorResponse;
+import com.datachef.datachef.dto.auth.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;

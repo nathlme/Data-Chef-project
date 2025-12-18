@@ -1,4 +1,4 @@
-package com.datachef.datachef.dto;
+package com.datachef.datachef.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

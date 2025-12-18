@@ -1,9 +1,9 @@
 package com.datachef.datachef.service;
 
 
-import com.datachef.datachef.dto.AuthTokens;
-import com.datachef.datachef.dto.LoginRequest;
-import com.datachef.datachef.dto.RegisterRequest;
+import com.datachef.datachef.dto.auth.AuthTokens;
+import com.datachef.datachef.dto.auth.LoginRequest;
+import com.datachef.datachef.dto.auth.RegisterRequest;
 import com.datachef.datachef.model.RefreshToken;
 import com.datachef.datachef.model.Users;
 import com.datachef.datachef.repository.UserRepository;
