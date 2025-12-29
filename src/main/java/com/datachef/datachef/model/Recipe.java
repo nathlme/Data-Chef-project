@@ -2,6 +2,7 @@ package com.datachef.datachef.model;
 
 
 import com.datachef.datachef.Enum.Difficulty;
+import com.datachef.datachef.Enum.Nutriscore;
 import com.datachef.datachef.data.RecipeInstruction;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -59,7 +60,7 @@ public class Recipe {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "instructions", columnDefinition = "jsonb", nullable = false)
-    private List<RecipeInstruction> instructions = new ArrayList<>();
+    private List<RecipeInstruction> instructions;
 
     @Column(
             name = "total_time_minutes",
@@ -70,7 +71,7 @@ public class Recipe {
     private Short totalTimeMinutes;
 
     @Column(name = "tags", columnDefinition = "TEXT[]")
-    private List<String> tags = new ArrayList<>();
+    private List<String> tags;
 
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic = true;
@@ -88,11 +89,13 @@ public class Recipe {
     private OffsetDateTime updatedAt;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
+    private List<RecipeIngredient> recipeIngredients;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecipeUtensil> recipeUtensils = new ArrayList<>();
+    private List<RecipeUtensil> recipeUtensils;
 
     private String imageUrl;
+
+    private Nutriscore nutriscore;
 
 }

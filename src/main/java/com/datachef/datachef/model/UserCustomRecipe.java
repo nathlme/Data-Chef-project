@@ -82,6 +82,7 @@ public class UserCustomRecipe {
     private Short totalTimeMinutes;
 
     @Column(nullable = false)
+    @Builder.Default
     private Short servings = 4;
 
     @Enumerated(EnumType.STRING)
