@@ -41,7 +41,7 @@ public class Utensil {
 
     private boolean isActive = true;
 
-    private String imageUrl;
+    private String imageKey;
 
     @OneToMany(mappedBy = "utensil")
     private List<RecipeUtensil> recipeUtensils = new ArrayList<>();

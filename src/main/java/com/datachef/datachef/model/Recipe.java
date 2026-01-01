@@ -94,7 +94,7 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeUtensil> recipeUtensils;
 
-    private String imageUrl;
+    private String imageKey;
 
     private Nutriscore nutriscore;
 

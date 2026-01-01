@@ -17,7 +17,7 @@ public record RecipeIngredientDTO(
         return new RecipeIngredientDTO(
                 recipeIngredient.getId(),
                 recipeIngredient.getIngredient().getName(),
-                recipeIngredient.getIngredient().getImageUrl(),
+                recipeIngredient.getIngredient().getImageKey(),
                 convertToQuantity(recipeIngredient.getQuantity(),recipeIngredient.getUnit()),
                 recipeIngredient.getIsOptional()
         );

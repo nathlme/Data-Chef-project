@@ -35,8 +35,8 @@ public class Users {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "avatar_url")
-    private String avatar_url;
+    @Column(name = "image_key")
+    private String imagekey;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserRating> ratings = new ArrayList<>();

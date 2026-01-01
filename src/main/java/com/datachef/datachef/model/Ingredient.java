@@ -62,8 +62,8 @@ public class Ingredient {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
+    @Column(name = "image_key", length = 500)
+    private String imageKey;
 
     // Relation avec RecipeIngredient
     @OneToMany(mappedBy = "ingredient")

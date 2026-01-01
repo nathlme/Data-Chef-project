@@ -14,7 +14,7 @@ public record RecipeUtensilDTO(
         return new RecipeUtensilDTO(
                 recipe.getId(),
                 recipe.getUtensil().getName(),
-                recipe.getUtensil().getImageUrl()
+                recipe.getUtensil().getImageKey()
         );
     }
 }
