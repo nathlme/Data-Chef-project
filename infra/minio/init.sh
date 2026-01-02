@@ -11,7 +11,23 @@ echo "✅ MinIO reachable"
 # Create bucket if not exists
 mc mb --ignore-existing local/"$MINIO_BUCKET"
 
+mc mb --ignore-existing local/"$MINIO_BUCKET"/recipe
+
+mc mb --ignore-existing local/"$MINIO_BUCKET"/utensil
+
+mc mb --ignore-existing local/"$MINIO_BUCKET"/ingredient
+
+mc mb --ignore-existing local/"$MINIO_BUCKET"/users
+
 # Upload default images (idempotent)
-mc cp --recursive /defaults/ local/"$MINIO_BUCKET"/
+mc cp --recursive /defaults/recipe local/"$MINIO_BUCKET"/
+
+mc cp --recursive /defaults/utensil local/"$MINIO_BUCKET"/
+
+mc cp --recursive /defaults/ingredient local/"$MINIO_BUCKET"/
+
+mc cp --recursive /defaults/user local/"$MINIO_BUCKET"/
+
+
 
 echo "🎉 MinIO initialization completed"
