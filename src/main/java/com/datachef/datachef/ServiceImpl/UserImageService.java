@@ -1,7 +1,10 @@
 package com.datachef.datachef.ServiceImpl;
 
-import com.datachef.datachef.model.Utensil;
-import com.datachef.datachef.repository.UtensilRepository;
+
+import com.datachef.datachef.model.Ingredient;
+import com.datachef.datachef.model.Users;
+import com.datachef.datachef.repository.IngredientRepository;
+import com.datachef.datachef.repository.UserRepository;
 import com.datachef.datachef.service.ImageService;
 import com.datachef.datachef.service.ImageStockageService;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,11 +18,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Transactional
-public class UtensilServiceImpl implements ImageService {
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+public class UserImageService implements ImageService {
 
-    private final UtensilRepository utensilRepository;
+    private final UserRepository userRepository;
     private final ImageStockageService imageStockageService;
     private static final int EXPIRY = 3600;
 
@@ -28,10 +31,10 @@ public class UtensilServiceImpl implements ImageService {
 
     @Override
     public String uploadImage(UUID Id, MultipartFile file) {
-        Utensil utensil = utensilRepository.findById(Id).orElseThrow(() -> new EntityNotFoundException("utensil not found"));
+        Users user = userRepository.findById(Id).orElseThrow(() -> new EntityNotFoundException("user not found"));
 
-        if(utensil.getImageKey() != null){
-            imageStockageService.delete(bucket, utensil.getImageKey());
+        if(user.getImagekey() != null){
+            imageStockageService.delete(bucket, user.getImagekey());
         }
 
         String imageKey = buildImageKey(Id, file.getOriginalFilename());
@@ -45,44 +48,44 @@ public class UtensilServiceImpl implements ImageService {
                     file.getContentType()
             );
         }catch (Exception e){
-            throw new RuntimeException("utensil image upload failed");
+            throw new RuntimeException("user image upload failed");
         }
 
-        utensil.setImageKey(imageKey);
+        user.setImagekey(imageKey);
         return imageKey;
     }
 
     @Override
     public String getImageUrl(UUID Id) {
-        Utensil utensil = utensilRepository.findById(Id)
-                .orElseThrow(() -> new EntityNotFoundException("utensil not found"));
+        Users user = userRepository.findById(Id)
+                .orElseThrow(() -> new EntityNotFoundException("user not found"));
 
-        if (utensil.getImageKey() == null) {
+        if (user.getImagekey() == null) {
             return null;
         }
 
         return imageStockageService.generateReadUrl(
                 bucket,
-                utensil.getImageKey(),
+                user.getImagekey(),
                 EXPIRY
         );
     }
 
     @Override
     public void deleteImage(UUID Id) {
-        Utensil utensil = utensilRepository.findById(Id)
-                .orElseThrow(() -> new EntityNotFoundException("utensil not found"));
+        Users user = userRepository.findById(Id)
+                .orElseThrow(() -> new EntityNotFoundException("user not found"));
 
-        if (utensil.getImageKey() != null) {
-            imageStockageService.delete(bucket, utensil.getImageKey());
-            utensil.setImageKey(null);
+        if (user.getImagekey() != null) {
+            imageStockageService.delete(bucket, user.getImagekey());
+            user.setImagekey(null);
         }
     }
 
 
     private String buildImageKey(UUID Id, String filename) {
         String ext = filename.substring(filename.lastIndexOf("."));
-        return "utensil/%s/%s%s".formatted(
+        return "user/%s/%s%s".formatted(
                 Id,
                 UUID.randomUUID(),
                 ext
