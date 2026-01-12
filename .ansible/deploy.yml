@@ -1,0 +1,65 @@
+---
+- name: Install PostgreSQL on database servers
+  hosts: Bdd
+  remote_user: quentin
+  become: true
+  vars_files:
+    - vars.yml
+  
+  pre_tasks:
+    - name: Update apt cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+  roles:
+    - role: geerlingguy.postgresql
+
+  post_tasks:
+    - name: Ensure PostgreSQL is listening on all interfaces
+      ansible.builtin.lineinfile:
+        path: "{{ postgresql_config_path }}/postgresql.conf"
+        regexp: "^#?listen_addresses"
+        line: "listen_addresses = '*'"
+      notify: restart postgresql
+
+- name: Install Docker Swarm and Portainer on docker servers
+  hosts: Docker
+  remote_user: quentin
+  become: true
+  vars_files:
+    - vars.yml
+  
+  pre_tasks:
+    - name: Update apt cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+    
+    - name: Install required packages
+      ansible.builtin.package:
+        name:
+          - python3-pip
+          - python3-setuptools
+        state: present
+    
+    - name: Install Docker Python library
+      ansible.builtin.apt:
+        name:
+          - docker
+          - docker-compose
+        state: present
+
+  roles:
+    - role: ckoliber.swarm
+    - role: shelleg.ansible_role_portainer
+      when: inventory_hostname in groups['docker'][0:1]
+
+  post_tasks:
+    - name: Display Swarm manager token
+      ansible.builtin.debug:
+        msg: "Swarm initialized. Access Portainer at http://{{ ansible_default_ipv4.address }}:9000"
+      when: inventory_hostname in groups['docker'][0:1]
+
