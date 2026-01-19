@@ -38,7 +38,7 @@ public class Recipe {
     @Column(unique = true, nullable = false)
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String  description;
 
     @Column(name = "prep_time_minutes", nullable = false)
