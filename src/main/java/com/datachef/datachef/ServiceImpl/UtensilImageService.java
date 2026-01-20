@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Transactional
-public class UtensilImageServiceImpl implements ImageService {
+public class UtensilImageService implements ImageService {
 
     private final UtensilRepository utensilRepository;
     private final ImageStockageService imageStockageService;

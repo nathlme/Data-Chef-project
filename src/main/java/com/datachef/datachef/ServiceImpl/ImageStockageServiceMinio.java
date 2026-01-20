@@ -15,7 +15,7 @@ import java.net.URI;
 
 @Service
 @RequiredArgsConstructor
-public class ImageStockageServiceMinioImpl implements ImageStockageService {
+public class ImageStockageServiceMinio implements ImageStockageService {
 
     private final MinioClient minioClient;
 

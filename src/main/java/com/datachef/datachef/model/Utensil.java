@@ -15,11 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Table(
-        name = "utensils",
-        indexes = {
-                @Index(name = "idx_utensils_category", columnList = "category"),
-                @Index(name = "idx_utensils_necessity", columnList = "necessity_level")
-        }
+        name = "utensils"
 )
 public class Utensil {
 
