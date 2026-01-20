@@ -9,5 +9,5 @@ public interface RecipeService {
 
 
     Optional<RecipeDTO> getRecipeDTOFromName(String recipeName);
-    Optional<RecipeDTO> getRecipeDTOFromId(UUID recipeId);
+    RecipeDTO getRecipeDTOFromUUID(UUID recipeId);
 }

@@ -25,7 +25,7 @@ public record RecipeDTO(
 
 ) {
 
-    public  RecipeDTO convertToDTO(Recipe recipe) {
+    public static RecipeDTO convertToDTO(Recipe recipe) {
         return new RecipeDTO(
                 recipe.getId(),
                 recipe.getName(),
