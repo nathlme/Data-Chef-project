@@ -30,6 +30,35 @@ import java.util.UUID;
 )
 public class Recipe {
 
+    public Recipe(
+            String name,
+            String description,
+            Short prepTimeMinutes,
+            Short cookTimeMinutes,
+            Short restTimeMinutes,
+            Difficulty difficulty,
+            List<RecipeInstruction> instructions,
+            List<String> tags,
+            Nutriscore nutriscore
+    ) {
+        this.name = name;
+        this.description = description;
+        this.prepTimeMinutes = prepTimeMinutes;
+        this.cookTimeMinutes = cookTimeMinutes;
+        this.restTimeMinutes = restTimeMinutes;
+        this.difficulty = difficulty;
+        this.instructions = instructions;
+        this.tags = tags;
+        this.nutriscore = nutriscore;
+        this.isPublic = true;
+        this.servings = 4;
+        this.recipeIngredients = new ArrayList<>();
+        this.recipeUtensils = new ArrayList<>();
+        this.ratings = new ArrayList<>();
+    }
+
+    public Recipe() {}
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "UUID")

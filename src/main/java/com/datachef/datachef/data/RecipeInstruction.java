@@ -12,6 +12,9 @@ public class RecipeInstruction {
     @JsonProperty("description")
     private String description;
 
+    @JsonProperty("title")
+    private String title;
+
     @JsonProperty("duration_minutes")
     private Integer durationMinutes;
 

@@ -46,6 +46,8 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+    networks:
+      - datachef-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/ready" ]
       interval: 5s
@@ -63,6 +65,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
       MINIO_BUCKET: ${MINIO_BUCKET}
+    networks:
+      - datachef-network
     volumes:
       - ./infra/minio/init.sh:/init.sh:ro
       - ./infra/minio/defaults:/defaults:ro

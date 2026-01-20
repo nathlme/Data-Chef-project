@@ -21,7 +21,8 @@ public record RecipeDTO(
         List<RecipeIngredientDTO> recipeIngredientList,
         List<RecipeUtensilDTO> recipeUtensilList,
         List<String> tags,
-        Nutriscore nutriscore
+        Nutriscore nutriscore,
+        String imageUrl
 
 ) {
 
@@ -39,7 +40,8 @@ public record RecipeDTO(
                 recipe.getRecipeIngredients() == null ? null : recipe.getRecipeIngredients().stream().map(RecipeIngredientDTO::convertToDTO).toList(),
                 recipe.getRecipeIngredients() == null ? null : recipe.getRecipeUtensils().stream().map(RecipeUtensilDTO::convertToDTO).toList(),
                 recipe.getTags(),
-                recipe.getNutriscore()
+                recipe.getNutriscore(),
+                recipe.getImageKey()
                 );
 
     }

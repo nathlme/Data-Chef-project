@@ -1,14 +1,15 @@
 package com.datachef.datachef.controller;
 
+import com.datachef.datachef.dto.recipe.CreateRecipeDTO;
 import com.datachef.datachef.dto.recipe.RecipeDTO;
+import com.datachef.datachef.model.Recipe;
+import com.datachef.datachef.model.Users;
 import com.datachef.datachef.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,14 +21,17 @@ public class RecipeController {
     @Autowired
     private RecipeService recipeService;
 
-    @GetMapping("/:id")
-    public ResponseEntity<RecipeDTO> getRecipe(@RequestParam UUID recipeId){
-        RecipeDTO recipe = recipeService.getRecipeDTOFromUUID(recipeId);
+    @GetMapping("/{id}")
+    public ResponseEntity<RecipeDTO> getRecipe(@PathVariable UUID id){
+        RecipeDTO recipe = recipeService.getRecipeDTOFromUUID(id);
         return ResponseEntity.ok(recipe);
     }
 
-    public ResponseEntity<RecipeDTO> createRecipe(CreateRecipeDTO createRecipeDTO){
+    @PostMapping("/create")
+    public ResponseEntity<RecipeDTO> createRecipe(CreateRecipeDTO createRecipeDTO, @AuthenticationPrincipal Users currentUser){
+         Recipe recipe = recipeService.createRecipe(createRecipeDTO, currentUser);
 
+        return ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
     }
 
     public ResponseEntity<List<RecipeDTO>> getAllRecipies(){return null;}

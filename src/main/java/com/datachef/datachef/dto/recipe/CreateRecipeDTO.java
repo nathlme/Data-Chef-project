@@ -1,7 +1,9 @@
 package com.datachef.datachef.dto.recipe;
 
 import com.datachef.datachef.Enum.Difficulty;
+import com.datachef.datachef.Enum.Nutriscore;
 import com.datachef.datachef.data.RecipeInstruction;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +17,9 @@ public record CreateRecipeDTO(
         Difficulty difficulty,
         List<RecipeInstruction> instructions,
         List<String> tags,
-        UUID ingredientId,
-        UUID utensilId
+        List<UUID> ingredientId,
+        List<UUID> utensilId,
+        Nutriscore nutriscore,
+        MultipartFile image
 ) {
 }
