@@ -65,6 +65,10 @@ public class UserPreference {
     @JoinTable(name = "user_disliked_ingredient", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "ingredient_id"))
     private Set<Ingredient> dislikedIngredients = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(name = "user_favorite_utensil", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "utensil_id"))
+    private Set<Utensil> favoriteUtensils = new HashSet<>();
+
     //validation will be done in DTO's
     @Column(name = "max_prep_time_minutes")
     private Integer maxPrepTimeMinutes;

@@ -58,7 +58,8 @@ services:
   minio-init:
     image: minio/mc
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: [ "/bin/sh", "/init.sh" ]
     environment:
       MINIO_ENDPOINT: ${MINIO_INTERNAL_ENDPOINT}

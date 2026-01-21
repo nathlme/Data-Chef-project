@@ -17,6 +17,7 @@ public record CreateRecipeDTO(
         Difficulty difficulty,
         List<RecipeInstruction> instructions,
         List<String> tags,
+        UUID creator,
         List<UUID> ingredientId,
         List<UUID> utensilId,
         Nutriscore nutriscore,

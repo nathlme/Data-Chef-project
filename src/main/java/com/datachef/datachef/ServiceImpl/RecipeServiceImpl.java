@@ -7,6 +7,7 @@ import com.datachef.datachef.repository.IngredientRepository;
 import com.datachef.datachef.repository.RecipeRepository;
 import com.datachef.datachef.repository.UtensilRepository;
 import com.datachef.datachef.service.RecipeService;
+import com.datachef.datachef.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ public class RecipeServiceImpl implements RecipeService {
     final RecipeImageService recipeImageService;
     final IngredientRepository ingredientRepository;
     final UtensilRepository utensilRepository;
+    final UserService userService;
 
     @Override
     public Optional<RecipeDTO> getRecipeDTOFromName(String recipeName) {
@@ -32,13 +34,16 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public RecipeDTO getRecipeDTOFromUUID(UUID recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new RuntimeException("no recipe found"));
-        recipe.setImageKey(recipeImageService.getImageUrl(recipeId));
+       if(!recipe.getImageKey().equals("recipe/default-recipe.jpg")){
+           recipe.setImageKey(recipeImageService.getImageUrl(recipeId));
+       }
         return RecipeDTO.convertToDTO(recipe);
     }
 
     @Override
-    public Recipe createRecipe(CreateRecipeDTO recipeDTO, Users currentUser) {
+    public Recipe createRecipe(CreateRecipeDTO recipeDTO) {
 
+        //initialise a new Recipe with basic constructor
         Recipe newRecipe = new Recipe(
                 recipeDTO.name(),
                 recipeDTO.description(),
@@ -51,9 +56,15 @@ public class RecipeServiceImpl implements RecipeService {
                 recipeDTO.nutriscore()
         );
 
-        newRecipe.setCreatedBy(currentUser);
+        //set the user
+        Users user = userService.getUserByUUID(recipeDTO.creator());
+        newRecipe.setCreatedBy(user);
 
+        //save to get an id
         Recipe savedRecipe = recipeRepository.save(newRecipe);
+
+
+        //use the id to create an image Key
         if (recipeDTO.image() != null && !recipeDTO.image().isEmpty()) {
             try {
                 String imageKey = recipeImageService.uploadImage(savedRecipe.getId(), recipeDTO.image());
@@ -62,9 +73,10 @@ public class RecipeServiceImpl implements RecipeService {
                 throw new RuntimeException("Failed to upload recipe image", e);
             }
         } else {
-            newRecipe.setImageKey("recipe/default-recipe.jpg");
+            savedRecipe.setImageKey("recipe/default-recipe.jpg");
         }
 
+        // retreive the RecipeIngredient, persistend throught cascade
         if (recipeDTO.ingredientId() != null && !recipeDTO.ingredientId().isEmpty()) {
             List<Ingredient> ingredients = ingredientRepository.findAllById(recipeDTO.ingredientId());
 
@@ -85,7 +97,7 @@ public class RecipeServiceImpl implements RecipeService {
             savedRecipe.getRecipeIngredients().addAll(recipeIngredients);
         }
 
-
+        //retreive the UtensilRecipe, persisted throught cascade
         if (recipeDTO.utensilId() != null && !recipeDTO.utensilId().isEmpty()) {
             List<Utensil> utensils = utensilRepository.findAllById(recipeDTO.utensilId());
 

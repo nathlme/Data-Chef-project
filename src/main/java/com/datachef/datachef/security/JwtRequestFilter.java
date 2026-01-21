@@ -1,6 +1,7 @@
 package com.datachef.datachef.security;
 
 
+import com.datachef.datachef.ServiceImpl.CustomUserDetailService;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,7 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
-    private com.datachef.datachef.security.CustomUserDetailService userDetailsService;
+    private CustomUserDetailService userDetailsService;
 
     @Autowired
     private JwtUtil jwtUtil;

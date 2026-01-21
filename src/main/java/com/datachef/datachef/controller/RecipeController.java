@@ -28,8 +28,8 @@ public class RecipeController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<RecipeDTO> createRecipe(CreateRecipeDTO createRecipeDTO, @AuthenticationPrincipal Users currentUser){
-         Recipe recipe = recipeService.createRecipe(createRecipeDTO, currentUser);
+    public ResponseEntity<RecipeDTO> createRecipe(@ModelAttribute CreateRecipeDTO createRecipeDTO){
+         Recipe recipe = recipeService.createRecipe(createRecipeDTO);
 
         return ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
     }

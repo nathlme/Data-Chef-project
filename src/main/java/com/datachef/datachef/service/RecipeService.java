@@ -13,5 +13,5 @@ public interface RecipeService {
 
     Optional<RecipeDTO> getRecipeDTOFromName(String recipeName);
     RecipeDTO getRecipeDTOFromUUID(UUID recipeId);
-    Recipe createRecipe(CreateRecipeDTO recipeDTO, Users currentUser);
+    Recipe createRecipe(CreateRecipeDTO recipeDTO);
 }

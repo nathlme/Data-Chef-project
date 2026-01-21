@@ -6,9 +6,9 @@
 -- 1. Insertion des utilisateurs de test
 INSERT INTO users (id, username, email, password_hash, image_key, is_active, role, created_at, updated_at)
 VALUES
-    (gen_random_uuid(), 'chef_marie', 'marie@datachef.com', '$2a$10$dummyhash1', 'users/default-user.jpg', true, 'USER', NOW(), NOW()),
-    (gen_random_uuid(), 'chef_pierre', 'pierre@datachef.com', '$2a$10$dummyhash2', 'users/default-user.jpg', true, 'USER', NOW(), NOW()),
-    (gen_random_uuid(), 'admin', 'admin@datachef.com', '$2a$10$dummyhash3', 'users/default-user.jpg', true, 'ADMIN', NOW(), NOW());
+    (gen_random_uuid(), 'chef_marie', 'marie@datachef.com', '$2a$10$dummyhash1', 'users/default-default-user.jpg', true, 'USER', NOW(), NOW()),
+    (gen_random_uuid(), 'chef_pierre', 'pierre@datachef.com', '$2a$10$dummyhash2', 'users/default-default-user.jpg', true, 'USER', NOW(), NOW()),
+    (gen_random_uuid(), 'admin', 'admin@datachef.com', '$2a$10$dummyhash3', 'users/default-default-user.jpg', true, 'ADMIN', NOW(), NOW());
 
 -- 2. Insertion des ingrédients
 INSERT INTO ingredient (id, name, name_plural, category, aisle, allergens, common_units, is_active, image_key, created_at, updated_at)
@@ -25,7 +25,7 @@ VALUES
 
     -- Produits laitiers
     (gen_random_uuid(), 'Crème fraîche', 'Crème fraîche', 'DAIRY', 'FRAIS', ARRAY['lactose']::text[], ARRAY['ML', 'CAS']::text[], true, 'ingredient/default-ingredient.jpg', NOW(), NOW()),
-    (gen_random_uuid(), 'Parmesan', 'Parmesan', 'DAIRY', 'FRAIS', ARRAY['lactose']::text[], ARRAY['G']::text[], true, 'ingredient/default-ingredient.jpg', NOW(), NOW()),
+    (gen_random_uuid(), 'Parmesan', 'Parmesan', 'DAIRY', 'FRAIS', ARRAY['lactose']::text[], ARRAY['G']::text[], true, 'ingredient/default--ingredient.jpg', NOW(), NOW()),
     (gen_random_uuid(), 'Beurre', 'Beurre', 'DAIRY', 'FRAIS', ARRAY['lactose']::text[], ARRAY['G', 'CAS']::text[], true, 'ingredient/default-ingredient.jpg', NOW(), NOW()),
 
     -- Féculents
