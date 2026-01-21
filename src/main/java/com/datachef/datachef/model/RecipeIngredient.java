@@ -44,11 +44,11 @@ public class RecipeIngredient {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Ingredient ingredient;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal quantity;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private MeasurementUnit unit;
 
     @Column(name = "preparation_note", length = 200)

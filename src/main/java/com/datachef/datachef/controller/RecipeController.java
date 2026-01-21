@@ -7,9 +7,11 @@ import com.datachef.datachef.model.Users;
 import com.datachef.datachef.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,9 +29,9 @@ public class RecipeController {
         return ResponseEntity.ok(recipe);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<RecipeDTO> createRecipe(@ModelAttribute CreateRecipeDTO createRecipeDTO){
-         Recipe recipe = recipeService.createRecipe(createRecipeDTO);
+    @PostMapping(path = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<RecipeDTO> createRecipe(  @RequestPart("recipe") CreateRecipeDTO recipeDetails, @RequestPart("image") MultipartFile file){
+         Recipe recipe = recipeService.createRecipe(recipeDetails, file);
 
         return ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
     }

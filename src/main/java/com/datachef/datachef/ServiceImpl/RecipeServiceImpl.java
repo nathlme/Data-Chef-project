@@ -8,8 +8,10 @@ import com.datachef.datachef.repository.RecipeRepository;
 import com.datachef.datachef.repository.UtensilRepository;
 import com.datachef.datachef.service.RecipeService;
 import com.datachef.datachef.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,30 +36,30 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public RecipeDTO getRecipeDTOFromUUID(UUID recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new RuntimeException("no recipe found"));
-       if(!recipe.getImageKey().equals("recipe/default-recipe.jpg")){
-           recipe.setImageKey(recipeImageService.getImageUrl(recipeId));
-       }
+        recipe.setImageKey(recipeImageService.getImageUrl(recipeId));
+
         return RecipeDTO.convertToDTO(recipe);
     }
 
     @Override
-    public Recipe createRecipe(CreateRecipeDTO recipeDTO) {
+    @Transactional
+    public Recipe createRecipe(CreateRecipeDTO recipeDTO, MultipartFile file) {
 
         //initialise a new Recipe with basic constructor
         Recipe newRecipe = new Recipe(
-                recipeDTO.name(),
-                recipeDTO.description(),
-                recipeDTO.prepTimeMinutes(),
-                recipeDTO.cookTimeMinutes(),
-                recipeDTO.restTimeMinutes(),
-                recipeDTO.difficulty(),
-                recipeDTO.instructions(),
-                recipeDTO.tags(),
-                recipeDTO.nutriscore()
+                recipeDTO.getName(),
+                recipeDTO.getDescription(),
+                recipeDTO.getPrepTimeMinutes(),
+                recipeDTO.getCookTimeMinutes(),
+                recipeDTO.getRestTimeMinutes(),
+                recipeDTO.getDifficulty(),
+                recipeDTO.getInstructions(),
+                recipeDTO.getTags(),
+                recipeDTO.getNutriscore()
         );
 
         //set the user
-        Users user = userService.getUserByUUID(recipeDTO.creator());
+        Users user = userService.getUserByUUID(recipeDTO.getCreator());
         newRecipe.setCreatedBy(user);
 
         //save to get an id
@@ -65,9 +67,9 @@ public class RecipeServiceImpl implements RecipeService {
 
 
         //use the id to create an image Key
-        if (recipeDTO.image() != null && !recipeDTO.image().isEmpty()) {
+        if (file != null) {
             try {
-                String imageKey = recipeImageService.uploadImage(savedRecipe.getId(), recipeDTO.image());
+                String imageKey = recipeImageService.uploadImage(savedRecipe.getId(), file);
                 newRecipe.setImageKey(imageKey);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to upload recipe image", e);
@@ -77,10 +79,10 @@ public class RecipeServiceImpl implements RecipeService {
         }
 
         // retreive the RecipeIngredient, persistend throught cascade
-        if (recipeDTO.ingredientId() != null && !recipeDTO.ingredientId().isEmpty()) {
-            List<Ingredient> ingredients = ingredientRepository.findAllById(recipeDTO.ingredientId());
+        if (recipeDTO.getIngredientId() != null && !recipeDTO.getIngredientId().isEmpty()) {
+            List<Ingredient> ingredients = ingredientRepository.findAllById(recipeDTO.getIngredientId());
 
-            if (ingredients.size() != recipeDTO.ingredientId().size()) {
+            if (ingredients.size() != recipeDTO.getIngredientId().size()) {
                 throw new RuntimeException("Some ingredients were not found");
             }
 
@@ -98,10 +100,10 @@ public class RecipeServiceImpl implements RecipeService {
         }
 
         //retreive the UtensilRecipe, persisted throught cascade
-        if (recipeDTO.utensilId() != null && !recipeDTO.utensilId().isEmpty()) {
-            List<Utensil> utensils = utensilRepository.findAllById(recipeDTO.utensilId());
+        if (recipeDTO.getUtensilId() != null && !recipeDTO.getUtensilId().isEmpty()) {
+            List<Utensil> utensils = utensilRepository.findAllById(recipeDTO.getUtensilId());
 
-            if (utensils.size() != recipeDTO.utensilId().size()) {
+            if (utensils.size() != recipeDTO.getUtensilId().size()) {
                 throw new RuntimeException("Some utensils were not found");
             }
 
