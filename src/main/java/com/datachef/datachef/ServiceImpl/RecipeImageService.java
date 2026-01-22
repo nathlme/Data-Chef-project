@@ -46,7 +46,7 @@ public class RecipeImageService implements ImageService {
                     file.getContentType()
             );
         }catch (Exception e){
-            throw new RuntimeException("Recipe image upload failed");
+            throw new RuntimeException("Recipe image upload failed",e);
         }
 
         recipe.setImageKey(imageKey);
