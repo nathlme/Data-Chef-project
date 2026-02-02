@@ -24,8 +24,6 @@ services:
       - MINIO_BUCKET=${MINIO_BUCKET}
     env_file:
       - .env
-    volumes:
-      - maven-repo:/root/.m2
     depends_on:
       minio:
         condition: service_healthy
@@ -98,7 +96,6 @@ networks:
     driver: bridge
 
 volumes:
-  maven-repo:
   postgres-data:
     driver: local
   minio_data:
