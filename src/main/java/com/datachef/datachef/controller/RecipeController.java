@@ -30,7 +30,7 @@ public class RecipeController {
     }
 
     @PostMapping(path = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<RecipeDTO> createRecipe(  @RequestPart("recipe") CreateRecipeDTO recipeDetails, @RequestPart("image") MultipartFile file){
+    public ResponseEntity<RecipeDTO> createRecipe(@RequestPart("recipe") CreateRecipeDTO recipeDetails, @RequestPart("image") MultipartFile file){
          Recipe recipe = recipeService.createRecipe(recipeDetails, file);
 
         return ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));

@@ -11,15 +11,17 @@ public record RecipeIngredientDTO(
         String name,
         String imageUrl,
         String quantity,
-        boolean isOptional
+        boolean isOptional,
+        String note
 ) {
     public static RecipeIngredientDTO convertToDTO(RecipeIngredient recipeIngredient) {
         return new RecipeIngredientDTO(
-                recipeIngredient.getId(),
+                recipeIngredient.getIngredient().getId(),
                 recipeIngredient.getIngredient().getName(),
                 recipeIngredient.getIngredient().getImageKey(),
                 convertToQuantity(recipeIngredient.getQuantity(),recipeIngredient.getUnit()),
-                recipeIngredient.getIsOptional()
+                recipeIngredient.getIsOptional(),
+                recipeIngredient.getPreparationNote()
         );
     }
 

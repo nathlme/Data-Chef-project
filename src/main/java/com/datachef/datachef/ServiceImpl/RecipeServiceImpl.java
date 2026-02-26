@@ -1,6 +1,7 @@
 package com.datachef.datachef.ServiceImpl;
 
 import com.datachef.datachef.dto.recipe.CreateRecipeDTO;
+import com.datachef.datachef.dto.recipe.CreateRecipeIngredientDTO;
 import com.datachef.datachef.dto.recipe.RecipeDTO;
 import com.datachef.datachef.model.*;
 import com.datachef.datachef.repository.IngredientRepository;
@@ -45,7 +46,6 @@ public class RecipeServiceImpl implements RecipeService {
     @Transactional
     public Recipe createRecipe(CreateRecipeDTO recipeDTO, MultipartFile file) {
 
-        //initialise a new Recipe with basic constructor
         Recipe newRecipe = new Recipe(
                 recipeDTO.getName(),
                 recipeDTO.getDescription(),
@@ -58,11 +58,9 @@ public class RecipeServiceImpl implements RecipeService {
                 recipeDTO.getNutriscore()
         );
 
-        //set the user
         Users user = userService.getUserByUUID(recipeDTO.getCreator());
         newRecipe.setCreatedBy(user);
 
-        //save to get an id
         Recipe savedRecipe = recipeRepository.save(newRecipe);
 
 
@@ -78,20 +76,19 @@ public class RecipeServiceImpl implements RecipeService {
             savedRecipe.setImageKey("recipe/default-recipe.jpg");
         }
 
-        // retreive the RecipeIngredient, persistend throught cascade
-        if (recipeDTO.getIngredientId() != null && !recipeDTO.getIngredientId().isEmpty()) {
-            List<Ingredient> ingredients = ingredientRepository.findAllById(recipeDTO.getIngredientId());
-
-            if (ingredients.size() != recipeDTO.getIngredientId().size()) {
-                throw new RuntimeException("Some ingredients were not found");
-            }
+        if (recipeDTO.getIngredient() != null && !recipeDTO.getIngredient().isEmpty()) {
 
             Recipe finalSavedRecipe = savedRecipe;
-            List<RecipeIngredient> recipeIngredients = ingredients.stream()
+            List<RecipeIngredient> recipeIngredients = recipeDTO.getIngredient().stream()
                     .map(ingredient -> {
                         RecipeIngredient ri = new RecipeIngredient();
+                        ri.setQuantity(ingredient.quantity());
+                        ri.setUnit(ingredient.unit());
+                        ri.setIsOptional(ingredient.isOptional());
+                        ri.setPreparationNote(ingredient.note());
                         ri.setRecipe(finalSavedRecipe);
-                        ri.setIngredient(ingredient);
+                        Ingredient ingredientToSave = ingredientRepository.findById(ingredient.ingredientId()).orElseThrow(() -> new RuntimeException("no ingredient found with id " + ingredient.ingredientId()));
+                        ri.setIngredient(Optional.of(ingredientToSave));
                         return ri;
                     })
                     .toList();
@@ -99,20 +96,17 @@ public class RecipeServiceImpl implements RecipeService {
             savedRecipe.getRecipeIngredients().addAll(recipeIngredients);
         }
 
-        //retreive the UtensilRecipe, persisted throught cascade
-        if (recipeDTO.getUtensilId() != null && !recipeDTO.getUtensilId().isEmpty()) {
-            List<Utensil> utensils = utensilRepository.findAllById(recipeDTO.getUtensilId());
-
-            if (utensils.size() != recipeDTO.getUtensilId().size()) {
-                throw new RuntimeException("Some utensils were not found");
-            }
+        if (recipeDTO.getUtensil() != null && !recipeDTO.getUtensil().isEmpty()) {
 
             Recipe finalSavedRecipe1 = savedRecipe;
-            List<RecipeUtensil> recipeUtensils = utensils.stream()
+            List<RecipeUtensil> recipeUtensils = recipeDTO.getUtensil().stream()
                     .map(utensil -> {
                         RecipeUtensil ru = new RecipeUtensil();
+                        ru.setNecessityLevel(utensil.necessityLevel());
+                        ru.setUsageNote(utensil.note());
                         ru.setRecipe(finalSavedRecipe1);
-                        ru.setUtensil(utensil);
+                        Utensil utensilToSave = utensilRepository.findById(utensil.utensilId()).orElseThrow(() -> new RuntimeException("utensil not found with id " + utensil.utensilId()));
+                        ru.setUtensil(Optional.of(utensilToSave));
                         return ru;
                     })
                     .toList();

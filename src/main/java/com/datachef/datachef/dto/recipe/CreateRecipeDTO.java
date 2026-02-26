@@ -20,7 +20,7 @@ public class CreateRecipeDTO {
     private List<RecipeInstruction> instructions;
     private List<String> tags;
     private UUID creator;
-    private List<UUID> ingredientId;
-    private List<UUID> utensilId;
+    private List<CreateRecipeIngredientDTO> ingredient;
+    private List<CreateRecipeUtensilDTO> utensil;
     private Nutriscore nutriscore;
 }

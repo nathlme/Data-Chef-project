@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
@@ -64,4 +65,7 @@ public class RecipeIngredient {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    public void setIngredient(Optional<Ingredient> byId) {
+        this.ingredient = byId.orElse(null);
+    }
 }
