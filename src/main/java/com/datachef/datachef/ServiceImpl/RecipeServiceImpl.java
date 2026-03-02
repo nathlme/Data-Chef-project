@@ -1,8 +1,7 @@
 package com.datachef.datachef.ServiceImpl;
 
-import com.datachef.datachef.dto.recipe.CreateRecipeDTO;
-import com.datachef.datachef.dto.recipe.CreateRecipeIngredientDTO;
-import com.datachef.datachef.dto.recipe.RecipeDTO;
+import com.datachef.datachef.dto.recipe.*;
+import com.datachef.datachef.exception.EntityNotFound;
 import com.datachef.datachef.model.*;
 import com.datachef.datachef.repository.IngredientRepository;
 import com.datachef.datachef.repository.RecipeRepository;
@@ -38,7 +37,6 @@ public class RecipeServiceImpl implements RecipeService {
     public RecipeDTO getRecipeDTOFromUUID(UUID recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new RuntimeException("no recipe found"));
         recipe.setImageKey(recipeImageService.getImageUrl(recipeId));
-
         return RecipeDTO.convertToDTO(recipe);
     }
 
@@ -47,22 +45,21 @@ public class RecipeServiceImpl implements RecipeService {
     public Recipe createRecipe(CreateRecipeDTO recipeDTO, MultipartFile file) {
 
         Recipe newRecipe = new Recipe(
-                recipeDTO.getName(),
-                recipeDTO.getDescription(),
-                recipeDTO.getPrepTimeMinutes(),
-                recipeDTO.getCookTimeMinutes(),
-                recipeDTO.getRestTimeMinutes(),
-                recipeDTO.getDifficulty(),
-                recipeDTO.getInstructions(),
-                recipeDTO.getTags(),
-                recipeDTO.getNutriscore()
+                recipeDTO.name(),
+                recipeDTO.description(),
+                recipeDTO.prepTimeMinutes(),
+                recipeDTO.cookTimeMinutes(),
+                recipeDTO.restTimeMinutes(),
+                recipeDTO.difficulty(),
+                recipeDTO.instructions(),
+                recipeDTO.tags(),
+                recipeDTO.nutriscore()
         );
 
-        Users user = userService.getUserByUUID(recipeDTO.getCreator());
+        Users user = userService.getUserByUUID(recipeDTO.creator());
         newRecipe.setCreatedBy(user);
 
         Recipe savedRecipe = recipeRepository.save(newRecipe);
-
 
         //use the id to create an image Key
         if (file != null) {
@@ -76,46 +73,81 @@ public class RecipeServiceImpl implements RecipeService {
             savedRecipe.setImageKey("recipe/default-recipe.jpg");
         }
 
-        if (recipeDTO.getIngredient() != null && !recipeDTO.getIngredient().isEmpty()) {
-
-            Recipe finalSavedRecipe = savedRecipe;
-            List<RecipeIngredient> recipeIngredients = recipeDTO.getIngredient().stream()
-                    .map(ingredient -> {
-                        RecipeIngredient ri = new RecipeIngredient();
-                        ri.setQuantity(ingredient.quantity());
-                        ri.setUnit(ingredient.unit());
-                        ri.setIsOptional(ingredient.isOptional());
-                        ri.setPreparationNote(ingredient.note());
-                        ri.setRecipe(finalSavedRecipe);
-                        Ingredient ingredientToSave = ingredientRepository.findById(ingredient.ingredientId()).orElseThrow(() -> new RuntimeException("no ingredient found with id " + ingredient.ingredientId()));
-                        ri.setIngredient(Optional.of(ingredientToSave));
-                        return ri;
-                    })
-                    .toList();
-
+        if (recipeDTO.ingredient() != null && !recipeDTO.ingredient().isEmpty()) {
+            List<RecipeIngredient> recipeIngredients = handleIngredientRelation(savedRecipe, recipeDTO.ingredient());
             savedRecipe.getRecipeIngredients().addAll(recipeIngredients);
         }
 
-        if (recipeDTO.getUtensil() != null && !recipeDTO.getUtensil().isEmpty()) {
-
-            Recipe finalSavedRecipe1 = savedRecipe;
-            List<RecipeUtensil> recipeUtensils = recipeDTO.getUtensil().stream()
-                    .map(utensil -> {
-                        RecipeUtensil ru = new RecipeUtensil();
-                        ru.setNecessityLevel(utensil.necessityLevel());
-                        ru.setUsageNote(utensil.note());
-                        ru.setRecipe(finalSavedRecipe1);
-                        Utensil utensilToSave = utensilRepository.findById(utensil.utensilId()).orElseThrow(() -> new RuntimeException("utensil not found with id " + utensil.utensilId()));
-                        ru.setUtensil(Optional.of(utensilToSave));
-                        return ru;
-                    })
-                    .toList();
-
+        if (recipeDTO.utensil() != null && !recipeDTO.utensil().isEmpty()) {
+            List<RecipeUtensil> recipeUtensils = handleUtensilRelation(savedRecipe, recipeDTO.utensil());
             savedRecipe.getRecipeUtensils().addAll(recipeUtensils);
         }
 
         savedRecipe = recipeRepository.save(savedRecipe);
 
         return savedRecipe;
+    }
+
+    @Override
+    @Transactional
+    public Recipe updateRecipe(UpdateRecipeDTO recipeDTO, UUID id, MultipartFile file) {
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public Recipe updateRecipeWithoutFile(UpdateRecipeDTO recipeDTO, UUID id) {
+        Recipe recipeToUpdate = recipeRepository.findById(id).orElseThrow(() -> new RuntimeException("no recipe found"));
+
+        recipeToUpdate.setName(recipeDTO.name());
+        recipeToUpdate.setDescription(recipeDTO.description());
+        recipeToUpdate.setCookTimeMinutes(recipeDTO.cookTimeMinutes());
+        recipeToUpdate.setDifficulty(recipeDTO.difficulty());
+        recipeToUpdate.setInstructions(recipeDTO.instructions());
+        recipeToUpdate.setTags(recipeDTO.tags());
+        recipeToUpdate.setNutriscore(recipeDTO.nutriscore());
+
+        if(recipeDTO.ingredient() != null && !recipeDTO.ingredient().isEmpty()) {
+            List<RecipeIngredient> recipeIngredientToUpdate = handleIngredientRelation(recipeToUpdate, recipeDTO.ingredient());
+            recipeToUpdate.getRecipeIngredients().clear();
+            recipeRepository.saveAndFlush(recipeToUpdate);
+            recipeToUpdate.getRecipeIngredients().addAll(recipeIngredientToUpdate);
+        }
+
+        if(recipeDTO.utensil() != null && !recipeDTO.utensil().isEmpty()) {
+            List<RecipeUtensil> recipeUtensilToUpdate = handleUtensilRelation(recipeToUpdate, recipeDTO.utensil());
+            recipeToUpdate.getRecipeUtensils().clear();
+            recipeRepository.saveAndFlush(recipeToUpdate);
+            recipeToUpdate.getRecipeUtensils().addAll(recipeUtensilToUpdate);
+        }
+
+        recipeRepository.save(recipeToUpdate);
+        return recipeToUpdate;
+    }
+
+    private List<RecipeUtensil> handleUtensilRelation(Recipe recipeToUpdate, List<CreateRecipeUtensilDTO> utensil2) {
+        return utensil2.stream().map(utensil -> {
+            RecipeUtensil updateRu = new RecipeUtensil();
+            updateRu.setNecessityLevel(utensil.necessityLevel());
+            updateRu.setUsageNote(utensil.note());
+            updateRu.setRecipe(recipeToUpdate);
+            Utensil utensilToSave = utensilRepository.findById(utensil.utensilId()).orElseThrow(() -> new EntityNotFound());
+            updateRu.setUtensil(Optional.of(utensilToSave));
+            return updateRu;
+        }).toList();
+    }
+
+    private List<RecipeIngredient> handleIngredientRelation(Recipe recipeToUpdate, List<CreateRecipeIngredientDTO> ingredient2) {
+        return ingredient2.stream().map(ingredient -> {
+                    RecipeIngredient updateRi = new RecipeIngredient();
+                    updateRi.setQuantity(ingredient.quantity());
+                    updateRi.setUnit(ingredient.unit());
+                    updateRi.setIsOptional(ingredient.isOptional());
+                    updateRi.setPreparationNote(ingredient.note());
+                    updateRi.setRecipe(recipeToUpdate);
+                    Ingredient ingredientToSave = ingredientRepository.findById(ingredient.ingredientId()).orElseThrow(() -> new RuntimeException("no ingredient found with id " + ingredient.ingredientId()));
+                    updateRi.setIngredient(Optional.of(ingredientToSave));
+                    return updateRi;
+                }).toList();
     }
 }

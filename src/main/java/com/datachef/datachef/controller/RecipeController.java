@@ -2,6 +2,7 @@ package com.datachef.datachef.controller;
 
 import com.datachef.datachef.dto.recipe.CreateRecipeDTO;
 import com.datachef.datachef.dto.recipe.RecipeDTO;
+import com.datachef.datachef.dto.recipe.UpdateRecipeDTO;
 import com.datachef.datachef.model.Recipe;
 import com.datachef.datachef.model.Users;
 import com.datachef.datachef.service.RecipeService;
@@ -30,15 +31,24 @@ public class RecipeController {
     }
 
     @PostMapping(path = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<RecipeDTO> createRecipe(@RequestPart("recipe") CreateRecipeDTO recipeDetails, @RequestPart("image") MultipartFile file){
+    public ResponseEntity<RecipeDTO> createRecipe(@RequestPart("recipe") CreateRecipeDTO recipeDetails, @RequestPart(value = "image", required = false) MultipartFile file){
          Recipe recipe = recipeService.createRecipe(recipeDetails, file);
 
         return ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
     }
 
-    public ResponseEntity<List<RecipeDTO>> getAllRecipies(){return null;}
+    @PatchMapping(path="/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<RecipeDTO> updateRecipe(UpdateRecipeDTO recipeDTO, @PathVariable UUID id, @RequestPart(value = "image", required = false) MultipartFile file){
 
-    public ResponseEntity<RecipeDTO> updateRecipe(RecipeDTO recipeDTO){return null;}
+        Recipe recipe;
+
+        if(file.isEmpty()){
+            recipe = recipeService.updateRecipeWithoutFile(recipeDTO, id);
+        }else{
+            recipe = recipeService.updateRecipe(recipeDTO, id, file);
+        }
+        return  ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
+    }
 
     public ResponseEntity<Void>  deleteRecipe(RecipeDTO recipeDTO){return null;}
 
@@ -49,4 +59,5 @@ public class RecipeController {
     }
 
     public ResponseEntity<List<RecipeDTO>> searchRecipes(@RequestParam String recipeName){return null;}
+
 }

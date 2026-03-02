@@ -43,14 +43,12 @@ public class AuthController {
 
         } catch (RuntimeException e) {
 
-            e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
 
         } catch (Exception e) {
 
-            e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("message", "An error occurred");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -72,7 +70,6 @@ public class AuthController {
             error.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         } catch (Exception e) {
-            e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("message", "An error occurred");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);

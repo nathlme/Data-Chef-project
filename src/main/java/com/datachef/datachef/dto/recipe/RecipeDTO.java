@@ -16,7 +16,7 @@ public record RecipeDTO(
         DurationDTO restTime,
         DurationDTO totalTime,
         Difficulty difficulty,
-        Short serving,
+        short serving,
         List<RecipeInstruction> recipeInstructionList,
         List<RecipeIngredientDTO> recipeIngredientList,
         List<RecipeUtensilDTO> recipeUtensilList,
@@ -38,7 +38,7 @@ public record RecipeDTO(
                 recipe.getServings(),
                 recipe.getInstructions(),
                 recipe.getRecipeIngredients() == null ? null : recipe.getRecipeIngredients().stream().map(RecipeIngredientDTO::convertToDTO).toList(),
-                recipe.getRecipeIngredients() == null ? null : recipe.getRecipeUtensils().stream().map(RecipeUtensilDTO::convertToDTO).toList(),
+                recipe.getRecipeUtensils() == null ? null : recipe.getRecipeUtensils().stream().map(RecipeUtensilDTO::convertToDTO).toList(),
                 recipe.getTags(),
                 recipe.getNutriscore(),
                 recipe.getImageKey()

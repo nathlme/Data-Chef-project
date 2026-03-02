@@ -38,11 +38,14 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(e.getMessage()));
     }
 
-    public ResponseEntity<ErrorResponse> handleExpiredRefreshTokenException(ExpiredRefreshTokenException e) {
+    @ExceptionHandler(EntityNotFound.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(Exception e) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
+                .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(e.getMessage()));
     }
+
+
 
 
 }

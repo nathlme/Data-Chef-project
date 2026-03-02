@@ -71,13 +71,13 @@ public class Recipe {
     private String  description;
 
     @Column(name = "prep_time_minutes", nullable = false)
-    private Short prepTimeMinutes;
+    private short prepTimeMinutes;
 
     @Column(name = "cook_time_minutes", nullable = false)
-    private Short cookTimeMinutes = 0;
+    private short cookTimeMinutes = 0;
 
     @Column(name = "rest_time_minutes", nullable = false)
-    private Short restTimeMinutes = 0;
+    private short restTimeMinutes = 0;
 
     @OneToMany(mappedBy = "recipe")
     private List<UserRating> ratings = new ArrayList<>();
@@ -85,7 +85,7 @@ public class Recipe {
     @Enumerated(EnumType.STRING)
     private Difficulty difficulty;
 
-    private Short servings = 4;
+    private short servings = 4;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "instructions", columnDefinition = "jsonb", nullable = false)
