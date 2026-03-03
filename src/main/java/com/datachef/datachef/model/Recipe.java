@@ -125,6 +125,9 @@ public class Recipe {
 
     private String imageKey;
 
+    @Column(name = "image_hash")
+    private String imageHash;
+
     private Nutriscore nutriscore;
 
 }

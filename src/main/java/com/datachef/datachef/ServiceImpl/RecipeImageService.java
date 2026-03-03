@@ -10,8 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
 
@@ -35,23 +37,29 @@ public class RecipeImageService implements ImageService {
             imageStockageService.delete(bucket, recipe.getImageKey());
         }
 
-        String imageKey = buildImageKey(recipeId, file.getOriginalFilename());
-        
-        try{
+        try {
+            byte[] fileBytes = file.getBytes();
+            String imageKey = buildImageKey(recipeId, file.getOriginalFilename());
+
             imageStockageService.upload(
                     bucket,
                     imageKey,
-                    file.getInputStream(),
-                    file.getSize(),
+                    new ByteArrayInputStream(fileBytes),
+                    fileBytes.length,
                     file.getContentType()
             );
+
+            recipe.setImageKey(imageKey);
+            recipe.setImageHash(DigestUtils.md5DigestAsHex(fileBytes));
+            return imageKey;
+
         }catch (Exception e){
             throw new RuntimeException("Recipe image upload failed",e);
         }
 
-        recipe.setImageKey(imageKey);
-        return imageKey;
+
     }
+
 
     @Override
     public String getImageUrl(UUID recipeId) {

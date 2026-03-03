@@ -11,8 +11,10 @@ import com.datachef.datachef.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -90,14 +92,8 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     @Transactional
-    public Recipe updateRecipe(UpdateRecipeDTO recipeDTO, UUID id, MultipartFile file) {
-        return null;
-    }
-
-    @Override
-    @Transactional
-    public Recipe updateRecipeWithoutFile(UpdateRecipeDTO recipeDTO, UUID id) {
-        Recipe recipeToUpdate = recipeRepository.findById(id).orElseThrow(() -> new RuntimeException("no recipe found"));
+    public Recipe updateRecipe(UpdateRecipeDTO recipeDTO, UUID id, MultipartFile file) throws IOException {
+        Recipe recipeToUpdate = recipeRepository.findById(id).orElseThrow(() -> new EntityNotFound(Recipe.class));
 
         recipeToUpdate.setName(recipeDTO.name());
         recipeToUpdate.setDescription(recipeDTO.description());
@@ -106,6 +102,12 @@ public class RecipeServiceImpl implements RecipeService {
         recipeToUpdate.setInstructions(recipeDTO.instructions());
         recipeToUpdate.setTags(recipeDTO.tags());
         recipeToUpdate.setNutriscore(recipeDTO.nutriscore());
+
+
+        String newHash = DigestUtils.md5DigestAsHex(file.getInputStream());
+        if (!newHash.equals(recipeToUpdate.getImageHash())) {
+            recipeImageService.uploadImage(id, file);
+        }
 
         if(recipeDTO.ingredient() != null && !recipeDTO.ingredient().isEmpty()) {
             List<RecipeIngredient> recipeIngredientToUpdate = handleIngredientRelation(recipeToUpdate, recipeDTO.ingredient());
@@ -124,6 +126,7 @@ public class RecipeServiceImpl implements RecipeService {
         recipeRepository.save(recipeToUpdate);
         return recipeToUpdate;
     }
+
 
     private List<RecipeUtensil> handleUtensilRelation(Recipe recipeToUpdate, List<CreateRecipeUtensilDTO> utensil2) {
         return utensil2.stream().map(utensil -> {
