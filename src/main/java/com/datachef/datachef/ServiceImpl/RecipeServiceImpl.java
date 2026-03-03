@@ -131,7 +131,7 @@ public class RecipeServiceImpl implements RecipeService {
             updateRu.setNecessityLevel(utensil.necessityLevel());
             updateRu.setUsageNote(utensil.note());
             updateRu.setRecipe(recipeToUpdate);
-            Utensil utensilToSave = utensilRepository.findById(utensil.utensilId()).orElseThrow(() -> new EntityNotFound());
+            Utensil utensilToSave = utensilRepository.findById(utensil.utensilId()).orElseThrow(() -> new EntityNotFound(Utensil.class));
             updateRu.setUtensil(Optional.of(utensilToSave));
             return updateRu;
         }).toList();
@@ -145,7 +145,7 @@ public class RecipeServiceImpl implements RecipeService {
                     updateRi.setIsOptional(ingredient.isOptional());
                     updateRi.setPreparationNote(ingredient.note());
                     updateRi.setRecipe(recipeToUpdate);
-                    Ingredient ingredientToSave = ingredientRepository.findById(ingredient.ingredientId()).orElseThrow(() -> new RuntimeException("no ingredient found with id " + ingredient.ingredientId()));
+                    Ingredient ingredientToSave = ingredientRepository.findById(ingredient.ingredientId()).orElseThrow(() -> new EntityNotFound(Ingredient.class));
                     updateRi.setIngredient(Optional.of(ingredientToSave));
                     return updateRi;
                 }).toList();
