@@ -1,6 +1,7 @@
 package com.datachef.datachef.controller;
 
 import com.datachef.datachef.config.RefreshCookieConfig;
+import com.datachef.datachef.documentation.AuthSwaggerApi;
 import com.datachef.datachef.dto.auth.AuthTokens;
 import com.datachef.datachef.dto.auth.LoginRequest;
 import com.datachef.datachef.dto.auth.RegisterRequest;
@@ -20,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class AuthController implements AuthSwaggerApi {
 
     @Autowired
     private AuthService authService;
