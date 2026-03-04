@@ -26,8 +26,8 @@ Data Chef est une application web ayant pour but de faciliter la gestion des rep
 
     FRONT-END :
     - HTML 
-    - CSS
-    - JavaScript 
+    - Tailwind CSS
+    - React
 
     BACK-END :
     - Java
