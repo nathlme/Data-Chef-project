@@ -1,75 +1,134 @@
-# React + TypeScript + Vite
+# Data-Chef-project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## ENGLISH VERSION BELLOW !
 
-Currently, two official plugins are available:
+## Présentation du projet
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Data Chef est une application web ayant pour but de faciliter la gestion des repas des utilisateurs, en prenant en compte de nombreux critères, comme le temps disponible, le nombre de personnes par repas, les moyens financiers ou encore les préférences alimentaires (allergènes, végan, sans porc, etc.). Grâce à l'application vous pouvez, prévoir dans un semainier quel repas sera à faire pour quel jour selon les critères précédents, et Data Chef vous fera votre liste de courses pour la semaine. C'est donc un énorme gain de temps tout en gardant le plaisir de la bonne nourriture. Il est également possible de choisir des recettes selon votre niveau en cuisine et le temps dont vous disposez afin de rendre accessible la cuisine à tout le monde.
 
-## React Compiler
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Objectifs
 
-Note: This will impact Vite dev & build performances.
+- Faciliter la gestion des repas selon de nombreux critères 
+- Regrouper beaucoup de recettes différentes 
+- Rendre accessible la cuisine à tous les types de modes de vie
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Fonctionnalités principales 
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Proposition de diverses recettes 
+- Sauvegarder des recettes aimées 
+- Filtre selon les préférences alimentaires, le budget, le temps disponible ...
+- Liste de courses automatique et semainier
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Technologies utilisées
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+    FRONT-END :
+    - HTML 
+    - CSS
+    - JavaScript 
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+    BACK-END :
+    - Java
+    - HTTP
+    - JSON
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+    DATA :
+    - Python  
+    - SQL
+    - BeautifulSoup 
+    - Requests
+    - API OpenFoodFacts
+
+    INFRA :
+    - Traefik 
+    - bare-metal open-source
+    - API Proxmox
+    - pfSense 
+
+
+## Équipe de projet
+
+- 2 Data 
+- 3 Devs 
+- 1 Design 
+- 1 Infra
+
+
+
+## Projet actuellement en cours de développement 
+
+
+
+
+
+
+
+
+
+
+## ENGLISH :
+
+
+## Project Overview
+
+Data Chef is a web application designed to simplify meal planning for users by taking into account various criteria such as available time, number of people per meal, budget, and dietary preferences (allergens, vegan, pork-free, etc.).
+Through the application, users can plan their meals using a weekly planner, choosing which dish to prepare for each day based on the selected criteria. Data Chef then automatically generates a weekly grocery list.
+This results in a significant time saving while preserving the pleasure of good food. Users can also choose recipes based on their cooking skill level and the time they have available, making cooking accessible to everyone.
+
+
+## Objectives
+
+- Simplify meal planning based on multiple criteria
+- Gather a wide variety of recipes
+- Make cooking accessible to all lifestyles
+
+
+## Main Features
+
+- Suggestions of various recipes
+- Saving favorite recipes
+- Filters based on dietary preferences, budget, and available time
+- Automatic generation of a weekly meal planner and grocery list
+
+
+## Technologies Used
+
+    Front-end :
+
+    - HTML
+    - CSS
+    - JavaScript
+
+    Back-end :
+
+    - Java
+    - HTTP
+    - JSON
+
+    Data :
+
+    - Python
+    - SQL
+    - BeautifulSoup
+    - Requests
+    - OpenFoodFacts API
+
+    Infrastructure :
+
+    - Traefik
+    - Bare-metal open-source server
+    - Proxmox API
+    - pfSense
+
+
+## Project Team
+
+- 2 Data
+- 3 Devs
+- 1 Infrastructure
+- 1 Design  
+
+
+## Project currently under development
