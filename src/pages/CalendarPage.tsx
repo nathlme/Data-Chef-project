@@ -19,7 +19,6 @@ interface DayPlan {
 
 const CalendarPage: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedDay, setSelectedDay] = useState(0); // 0 = Lundi
   const [weekPlan, setWeekPlan] = useState<DayPlan[]>([]);
 
   const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
@@ -55,21 +54,6 @@ const CalendarPage: React.FC = () => {
   const handleLogout = () => {
     console.log("Déconnexion");
     navigate("/");
-  };
-
-  const getMealsForDayAndType = (dayIndex: number, mealType: PlannedMeal["mealType"]) => {
-    if (!weekPlan[dayIndex]) return [];
-    return weekPlan[dayIndex].meals.filter(meal => meal.mealType === mealType);
-  };
-
-  const getMealTypeLabel = (type: string) => {
-    switch(type) {
-      case "breakfast": return "Petit-déjeuner";
-      case "lunch": return "Déjeuner";
-      case "dinner": return "Dîner";
-      case "snack": return "Goûter";
-      default: return "";
-    }
   };
 
   return (
