@@ -98,8 +98,9 @@ This results in a significant time saving while preserving the pleasure of good 
     Front-end :
 
     - HTML
-    - CSS
-    - JavaScript
+    - Tailwind CSS
+    - React
+    
 
     Back-end :
 
