@@ -51,7 +51,6 @@ public class Recipe {
         this.tags = tags;
         this.nutriscore = nutriscore;
         this.isPublic = true;
-        this.servings = 4;
         this.recipeIngredients = new ArrayList<>();
         this.recipeUtensils = new ArrayList<>();
         this.ratings = new ArrayList<>();
@@ -79,7 +78,7 @@ public class Recipe {
     @Column(name = "rest_time_minutes", nullable = false)
     private short restTimeMinutes = 0;
 
-    @OneToMany(mappedBy = "recipe")
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserRating> ratings = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

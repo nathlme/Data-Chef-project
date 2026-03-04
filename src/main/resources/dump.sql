@@ -152,6 +152,7 @@ create table recipe
             check ((difficulty)::text = ANY
                    ((ARRAY ['EASY'::character varying, 'MEDIUM'::character varying, 'HARD'::character varying])::text[])),
     image_url          varchar(255),
+    imageHash          varchar(255),
     instructions       jsonb                       not null,
     is_public          boolean                     not null,
     name               varchar(255)                not null,

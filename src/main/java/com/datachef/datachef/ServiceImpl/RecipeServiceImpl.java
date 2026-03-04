@@ -1,5 +1,6 @@
 package com.datachef.datachef.ServiceImpl;
 
+import com.datachef.datachef.Enum.Difficulty;
 import com.datachef.datachef.dto.recipe.*;
 import com.datachef.datachef.exception.EntityNotFound;
 import com.datachef.datachef.model.*;
@@ -8,8 +9,11 @@ import com.datachef.datachef.repository.RecipeRepository;
 import com.datachef.datachef.repository.UtensilRepository;
 import com.datachef.datachef.service.RecipeService;
 import com.datachef.datachef.service.UserService;
+import com.datachef.datachef.specification.RecipeSpecification;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +36,8 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public Optional<RecipeDTO> getRecipeDTOFromName(String recipeName) {
-        return null;
+        return recipeRepository.findByName(recipeName)
+                .map(RecipeDTO::convertToDTO);
     }
 
     @Override
@@ -127,6 +132,34 @@ public class RecipeServiceImpl implements RecipeService {
         return recipeToUpdate;
     }
 
+    @Override
+    @Transactional
+    public void deleteRecipe(UUID recipeId) {
+            recipeRepository.deleteById(recipeId);
+            recipeImageService.deleteImage(recipeId);
+    }
+
+    @Override
+    public List<RecipeDTO> getAllRecipe() {
+        List<Recipe> recipes = recipeRepository.findAll();
+        if(recipes.isEmpty()){
+            throw new EntityNotFound(Recipe.class);
+        }
+
+        return recipes.stream().map(RecipeDTO::convertToDTO).toList();
+    }
+
+    public List<RecipeDTO> search(String query, Difficulty difficulty, List<String> tags) {
+        Specification<Recipe> spec = Specification
+                .where(RecipeSpecification.hasName(query))
+                .and(RecipeSpecification.hasDifficulty(difficulty))
+                .and(RecipeSpecification.hasTags(tags));
+
+        return recipeRepository.findAll(spec)
+                .stream()
+                .map(RecipeDTO::convertToDTO)
+                .toList();
+    }
 
     private List<RecipeUtensil> handleUtensilRelation(Recipe recipeToUpdate, List<CreateRecipeUtensilDTO> utensil2) {
         return utensil2.stream().map(utensil -> {
@@ -153,4 +186,6 @@ public class RecipeServiceImpl implements RecipeService {
                     return updateRi;
                 }).toList();
     }
+
+
 }

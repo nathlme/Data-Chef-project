@@ -1,8 +1,11 @@
 package com.datachef.datachef.controller;
 
+import com.datachef.datachef.Enum.Difficulty;
+import com.datachef.datachef.documentation.RecipeSwaggerApi;
 import com.datachef.datachef.dto.recipe.CreateRecipeDTO;
 import com.datachef.datachef.dto.recipe.RecipeDTO;
 import com.datachef.datachef.dto.recipe.UpdateRecipeDTO;
+import com.datachef.datachef.exception.EntityNotFound;
 import com.datachef.datachef.model.Recipe;
 import com.datachef.datachef.model.Users;
 import com.datachef.datachef.service.RecipeService;
@@ -20,7 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/recipe")
-public class RecipeController {
+public class RecipeController implements RecipeSwaggerApi {
 
     @Autowired
     private RecipeService recipeService;
@@ -46,14 +49,31 @@ public class RecipeController {
         return  ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
     }
 
-    public ResponseEntity<Void>  deleteRecipe(RecipeDTO recipeDTO){return null;}
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<Void>  deleteRecipe(@PathVariable UUID id){
+            recipeService.deleteRecipe(id);
+            return ResponseEntity.noContent().build();
+    }
 
-    public ResponseEntity<RecipeDTO> getRecipeFromName(@RequestParam String recipeName){
-        RecipeDTO recipeDTO = recipeService.getRecipeDTOFromName(recipeName).orElseThrow();
+    @GetMapping(path="/name/{name}")
+    public ResponseEntity<RecipeDTO> getRecipeFromName(@PathVariable String name){
+        RecipeDTO recipeDTO = recipeService.getRecipeDTOFromName(name).orElseThrow(() -> new EntityNotFound(Recipe.class));
 
         return ResponseEntity.ok(recipeDTO);
     }
 
-    public ResponseEntity<List<RecipeDTO>> searchRecipes(@RequestParam String recipeName){return null;}
+    @GetMapping("/search")
+    public ResponseEntity<List<RecipeDTO>> search(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Difficulty difficulty,
+            @RequestParam(required = false) List<String> tags
+    ) {
+        return ResponseEntity.ok(recipeService.search(query, difficulty, tags));
+    }
+
+    @GetMapping(path = "/all")
+    public ResponseEntity<List<RecipeDTO>> getAllRecipes(){
+        return ResponseEntity.ok(recipeService.getAllRecipe());
+    }
 
 }

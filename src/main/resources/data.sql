@@ -54,7 +54,7 @@ VALUES
 WITH user_marie AS (
     SELECT id FROM users WHERE username = 'chef_marie' LIMIT 1
     )
-INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, tags, is_public, created_by, nutriscore, image_key, created_at, updated_at)
+INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, tags, is_public, created_by, nutriscore, image_key,image_hash, created_at, updated_at)
 SELECT
     gen_random_uuid(),
     'Pâtes Carbonara',
@@ -76,13 +76,14 @@ SELECT
     (SELECT id FROM user_marie),
     2,
     'recipe/default-recipe.jpg',
+    'C5D3A6E02BEC389B1A8A593B4CC25445',
     NOW(),
     NOW();
 
 WITH user_pierre AS (
     SELECT id FROM users WHERE username = 'chef_pierre' LIMIT 1
     )
-INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, tags, is_public, created_by, nutriscore, image_key, created_at, updated_at)
+INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, tags, is_public, created_by, nutriscore, image_key,image_hash, created_at, updated_at)
 SELECT
     gen_random_uuid(),
     'Poulet rôti aux légumes',
@@ -104,6 +105,7 @@ SELECT
     (SELECT id FROM user_pierre),
     1,
     'recipe/default-recipe.jpg',
+    'C5D3A6E02BEC389B1A8A593B4CC25445',
     NOW(),
     NOW();
 
