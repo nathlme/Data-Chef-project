@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaCog, FaBell, FaCalendarAlt, FaSignOutAlt } from "react-icons/fa";
 import Header from "../components/Header";
 import logo from "../assets/logo.png";
-import backgroundVector from "../assets/Background vector.png";
+import backgroundVector from "../assets/Background Vector.png";
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
