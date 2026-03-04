@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { FaGoogle, FaFacebookF, FaApple } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import loginImage from "../assets/login.jpg";
+import loginImage from "../assets/Login.jpg";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
