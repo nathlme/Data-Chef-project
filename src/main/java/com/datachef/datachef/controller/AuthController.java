@@ -10,6 +10,7 @@ import com.datachef.datachef.exception.InvalidRefreshTokenException;
 import com.datachef.datachef.model.Users;
 import com.datachef.datachef.security.JwtUtil;
 import com.datachef.datachef.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class AuthController implements AuthSwaggerApi {
     private RefreshCookieConfig cookieConfig;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
 
             AuthTokens response = authService.register(request);
