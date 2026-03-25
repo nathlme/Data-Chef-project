@@ -1,19 +1,21 @@
 package com.datachef.datachef.ServiceImpl;
 
 import com.datachef.datachef.Enum.Difficulty;
+import com.datachef.datachef.dto.image.ImageUploadResult;
 import com.datachef.datachef.dto.recipe.*;
 import com.datachef.datachef.exception.EntityNotFound;
 import com.datachef.datachef.model.*;
 import com.datachef.datachef.repository.IngredientRepository;
 import com.datachef.datachef.repository.RecipeRepository;
+import com.datachef.datachef.repository.UserRepository;
 import com.datachef.datachef.repository.UtensilRepository;
+import com.datachef.datachef.service.ImageService;
 import com.datachef.datachef.service.RecipeService;
-import com.datachef.datachef.service.UserService;
 import com.datachef.datachef.specification.RecipeSpecification;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,17 +24,20 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-@AllArgsConstructor
 @Service
 public class RecipeServiceImpl implements RecipeService {
 
     final RecipeRepository  recipeRepository;
-    final RecipeImageService recipeImageService;
+
+    @Qualifier("recipeImageService")
+    final ImageService  imageService;
+
     final IngredientRepository ingredientRepository;
+
     final UtensilRepository utensilRepository;
-    final UserService userService;
+
+    final UserRepository userRepository;
 
     @Override
     public Optional<RecipeDTO> getRecipeDTOFromName(String recipeName) {
@@ -40,10 +45,25 @@ public class RecipeServiceImpl implements RecipeService {
                 .map(RecipeDTO::convertToDTO);
     }
 
+    @Autowired
+    public RecipeServiceImpl(
+            RecipeRepository recipeRepository,
+            @Qualifier("recipeImageService") ImageService imageService,
+            IngredientRepository ingredientRepository,
+            UtensilRepository utensilRepository,
+            UserRepository userRepository
+    ) {
+        this.recipeRepository = recipeRepository;
+        this.imageService = imageService;
+        this.ingredientRepository = ingredientRepository;
+        this.utensilRepository = utensilRepository;
+        this.userRepository = userRepository;
+    }
+
     @Override
     public RecipeDTO getRecipeDTOFromUUID(UUID recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new RuntimeException("no recipe found"));
-        recipe.setImageKey(recipeImageService.getImageUrl(recipeId));
+        recipe.setImageKey(imageService.getImageUrl(recipeId));
         return RecipeDTO.convertToDTO(recipe);
     }
 
@@ -63,7 +83,7 @@ public class RecipeServiceImpl implements RecipeService {
                 recipeDTO.nutriscore()
         );
 
-        Users user = userService.getUserByUUID(recipeDTO.creator());
+        Users user = userRepository.findById(recipeDTO.creator()).orElseThrow(() -> new EntityNotFound(Users.class));
         newRecipe.setCreatedBy(user);
 
         Recipe savedRecipe = recipeRepository.save(newRecipe);
@@ -71,13 +91,15 @@ public class RecipeServiceImpl implements RecipeService {
         //use the id to create an image Key
         if (file != null) {
             try {
-                String imageKey = recipeImageService.uploadImage(savedRecipe.getId(), file);
-                newRecipe.setImageKey(imageKey);
+                ImageUploadResult uploadResult = imageService.uploadImage(savedRecipe.getId(), file);
+                savedRecipe.setImageKey(uploadResult.imageKey());
+                savedRecipe.setImageHash(uploadResult.imageHash());
             } catch (Exception e) {
                 throw new RuntimeException("Failed to upload recipe image", e);
             }
         } else {
             savedRecipe.setImageKey("recipe/default-recipe.jpg");
+            savedRecipe.setImageHash(null);
         }
 
         if (recipeDTO.ingredient() != null && !recipeDTO.ingredient().isEmpty()) {
@@ -90,9 +112,8 @@ public class RecipeServiceImpl implements RecipeService {
             savedRecipe.getRecipeUtensils().addAll(recipeUtensils);
         }
 
-        savedRecipe = recipeRepository.save(savedRecipe);
+        return recipeRepository.save(savedRecipe);
 
-        return savedRecipe;
     }
 
     @Override
@@ -108,10 +129,14 @@ public class RecipeServiceImpl implements RecipeService {
         recipeToUpdate.setTags(recipeDTO.tags());
         recipeToUpdate.setNutriscore(recipeDTO.nutriscore());
 
-
-        String newHash = DigestUtils.md5DigestAsHex(file.getInputStream());
-        if (!newHash.equals(recipeToUpdate.getImageHash())) {
-            recipeImageService.uploadImage(id, file);
+        if (file != null && !file.isEmpty()) {
+            byte[] fileBytes = file.getBytes();
+            String newHash = DigestUtils.md5DigestAsHex(fileBytes);
+            if (!newHash.equals(recipeToUpdate.getImageHash())) {
+                ImageUploadResult uploadResult = imageService.uploadImage(id, file);
+                recipeToUpdate.setImageHash(uploadResult.imageHash());
+                recipeToUpdate.setImageKey(uploadResult.imageKey());
+            }
         }
 
         if(recipeDTO.ingredient() != null && !recipeDTO.ingredient().isEmpty()) {
@@ -136,7 +161,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Transactional
     public void deleteRecipe(UUID recipeId) {
             recipeRepository.deleteById(recipeId);
-            recipeImageService.deleteImage(recipeId);
+            imageService.deleteImage(recipeId);
     }
 
     @Override

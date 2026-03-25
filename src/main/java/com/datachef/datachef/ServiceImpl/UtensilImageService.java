@@ -1,5 +1,6 @@
 package com.datachef.datachef.ServiceImpl;
 
+import com.datachef.datachef.dto.image.ImageUploadResult;
 import com.datachef.datachef.model.Utensil;
 import com.datachef.datachef.repository.UtensilRepository;
 import com.datachef.datachef.service.ImageService;
@@ -10,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
 @Service
@@ -27,29 +30,27 @@ public class UtensilImageService implements ImageService {
     private String bucket;
 
     @Override
-    public String uploadImage(UUID Id, MultipartFile file) {
+    public ImageUploadResult uploadImage(UUID Id, MultipartFile file) {
         Utensil utensil = utensilRepository.findById(Id).orElseThrow(() -> new EntityNotFoundException("utensil not found"));
 
         if(utensil.getImageKey() != null){
             imageStockageService.delete(bucket, utensil.getImageKey());
         }
 
-        String imageKey = buildImageKey(Id, file.getOriginalFilename());
-
         try{
+            byte[] fileBytes = file.getBytes();
+            String imageKey = buildImageKey(Id, file.getOriginalFilename());
             imageStockageService.upload(
                     bucket,
                     imageKey,
-                    file.getInputStream(),
+                    new ByteArrayInputStream(fileBytes),
                     file.getSize(),
                     file.getContentType()
             );
+            return new ImageUploadResult(imageKey, DigestUtils.md5DigestAsHex(fileBytes));
         }catch (Exception e){
             throw new RuntimeException("utensil image upload failed");
         }
-
-        utensil.setImageKey(imageKey);
-        return imageKey;
     }
 
     @Override

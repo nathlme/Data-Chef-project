@@ -23,7 +23,7 @@ public class CustomUserDetailService implements UserDetailsService {
         Users user = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        if (!user.getIs_active()) {
+        if (Boolean.FALSE.equals(user.getIs_active())) {
             throw new UsernameNotFoundException("User account is inactive");
         }
 

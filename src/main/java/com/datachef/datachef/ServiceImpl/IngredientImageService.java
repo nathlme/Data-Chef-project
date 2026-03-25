@@ -1,5 +1,7 @@
 package com.datachef.datachef.ServiceImpl;
 
+import com.datachef.datachef.dto.image.ImageUploadResult;
+import com.datachef.datachef.exception.EntityNotFound;
 import com.datachef.datachef.model.Ingredient;
 import com.datachef.datachef.repository.IngredientRepository;
 import com.datachef.datachef.service.ImageService;
@@ -10,8 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -27,35 +32,34 @@ public class IngredientImageService implements ImageService {
     private String bucket;
 
     @Override
-    public String uploadImage(UUID Id, MultipartFile file) {
+    public ImageUploadResult uploadImage(UUID Id, MultipartFile file) {
         Ingredient ingredient = ingredientRepository.findById(Id).orElseThrow(() -> new EntityNotFoundException("ingredient not found"));
 
         if(ingredient.getImageKey() != null){
             imageStockageService.delete(bucket, ingredient.getImageKey());
         }
 
-        String imageKey = buildImageKey(Id, file.getOriginalFilename());
-
         try{
+            byte[] fileBytes = file.getBytes();
+            String imageKey = buildImageKey(Id, Objects.requireNonNull(file.getOriginalFilename()));
+
             imageStockageService.upload(
                     bucket,
                     imageKey,
-                    file.getInputStream(),
+                    new ByteArrayInputStream(fileBytes),
                     file.getSize(),
                     file.getContentType()
             );
+            return new ImageUploadResult(imageKey, DigestUtils.md5DigestAsHex(fileBytes));
         }catch (Exception e){
             throw new RuntimeException("ingredient image upload failed");
         }
-
-        ingredient.setImageKey(imageKey);
-        return imageKey;
     }
 
     @Override
     public String getImageUrl(UUID Id) {
         Ingredient ingredient = ingredientRepository.findById(Id)
-                .orElseThrow(() -> new EntityNotFoundException("ingredient not found"));
+                .orElseThrow(() -> new EntityNotFound(Ingredient.class));
 
         if (ingredient.getImageKey() == null) {
             return null;

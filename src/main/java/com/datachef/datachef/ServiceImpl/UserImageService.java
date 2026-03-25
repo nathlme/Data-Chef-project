@@ -1,9 +1,9 @@
 package com.datachef.datachef.ServiceImpl;
 
 
-import com.datachef.datachef.model.Ingredient;
+import com.datachef.datachef.dto.image.ImageUploadResult;
+import com.datachef.datachef.exception.EntityNotFound;
 import com.datachef.datachef.model.Users;
-import com.datachef.datachef.repository.IngredientRepository;
 import com.datachef.datachef.repository.UserRepository;
 import com.datachef.datachef.service.ImageService;
 import com.datachef.datachef.service.ImageStockageService;
@@ -13,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.io.ByteArrayInputStream;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -30,29 +32,28 @@ public class UserImageService implements ImageService {
     private String bucket;
 
     @Override
-    public String uploadImage(UUID Id, MultipartFile file) {
-        Users user = userRepository.findById(Id).orElseThrow(() -> new EntityNotFoundException("user not found"));
+    public ImageUploadResult uploadImage(UUID Id, MultipartFile file) {
+        Users user = userRepository.findById(Id).orElseThrow(() -> new EntityNotFound(Users.class));
 
         if(user.getImagekey() != null){
             imageStockageService.delete(bucket, user.getImagekey());
         }
 
-        String imageKey = buildImageKey(Id, file.getOriginalFilename());
-
         try{
+            byte[] fileBytes = file.getBytes();
+            String imageKey = buildImageKey(Id, Objects.requireNonNull(file.getOriginalFilename()));
             imageStockageService.upload(
                     bucket,
                     imageKey,
-                    file.getInputStream(),
+                    new ByteArrayInputStream(fileBytes),
                     file.getSize(),
                     file.getContentType()
             );
+
+            return new ImageUploadResult(imageKey, DigestUtils.md5DigestAsHex(fileBytes));
         }catch (Exception e){
             throw new RuntimeException("user image upload failed");
         }
-
-        user.setImagekey(imageKey);
-        return imageKey;
     }
 
     @Override

@@ -54,5 +54,8 @@ public class Users {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updated_at;
 
+    @Column(name = "image_hash")
+    private String imageHash;
+
 
 }

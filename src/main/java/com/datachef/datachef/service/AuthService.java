@@ -34,7 +34,6 @@ public class AuthService {
     private AuthenticationManager authenticationManager;
 
     public AuthTokens register(RegisterRequest request) {
-        System.out.println("Register attempt for username: " + request.getUsername());
 
         if (usersRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already exists");
@@ -50,9 +49,9 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setRole("USER");
         user.setIs_active(true);
-
+        user.setImagekey("user/default-user.jpg");
+        user.setImageHash(null);
         user = usersRepository.save(user);
-
         String token = jwtUtil.generateToken(user.getUsername());
         RefreshToken refreshToken = refreshService.createRefreshToken(user);
         String rt = refreshToken.getToken();

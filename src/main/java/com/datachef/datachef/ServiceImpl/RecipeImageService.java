@@ -1,5 +1,7 @@
 package com.datachef.datachef.ServiceImpl;
 
+import com.datachef.datachef.dto.image.ImageUploadResult;
+import com.datachef.datachef.exception.EntityNotFound;
 import com.datachef.datachef.model.Recipe;
 import com.datachef.datachef.repository.RecipeRepository;
 import com.datachef.datachef.service.ImageService;
@@ -14,6 +16,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -30,8 +33,8 @@ public class RecipeImageService implements ImageService {
     private String bucket;
 
     @Override
-    public String uploadImage(UUID recipeId, MultipartFile file) {
-        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityNotFoundException("Recipe not found"));
+    public ImageUploadResult uploadImage(UUID recipeId, MultipartFile file) {
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new EntityNotFound(Recipe.class));
 
         if(recipe.getImageKey() != null){
             imageStockageService.delete(bucket, recipe.getImageKey());
@@ -39,7 +42,7 @@ public class RecipeImageService implements ImageService {
 
         try {
             byte[] fileBytes = file.getBytes();
-            String imageKey = buildImageKey(recipeId, file.getOriginalFilename());
+            String imageKey = buildImageKey(recipeId, Objects.requireNonNull(file.getOriginalFilename()));
 
             imageStockageService.upload(
                     bucket,
@@ -48,10 +51,7 @@ public class RecipeImageService implements ImageService {
                     fileBytes.length,
                     file.getContentType()
             );
-
-            recipe.setImageKey(imageKey);
-            recipe.setImageHash(DigestUtils.md5DigestAsHex(fileBytes));
-            return imageKey;
+            return new ImageUploadResult(imageKey, DigestUtils.md5DigestAsHex(fileBytes));
 
         }catch (Exception e){
             throw new RuntimeException("Recipe image upload failed",e);
