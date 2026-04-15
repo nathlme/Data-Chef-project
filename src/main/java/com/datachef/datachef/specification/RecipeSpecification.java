@@ -1,6 +1,4 @@
 package com.datachef.datachef.specification;
-
-import com.datachef.datachef.Enum.Difficulty;
 import com.datachef.datachef.model.Recipe;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -13,13 +11,16 @@ public class RecipeSpecification {
                 cb.like(cb.lower(root.get("name")), "%" + query.toLowerCase() + "%");
     }
 
-    public static Specification<Recipe> hasDifficulty(Difficulty difficulty) {
+    public static Specification<Recipe> hasDifficulty(String difficulty) {
         return (root, cq, cb) -> difficulty == null ? null :
-                cb.equal(root.get("difficulty"), difficulty);
+                cb.equal(root.get("difficulty"), difficulty.toUpperCase());
     }
 
     public static Specification<Recipe> hasTags(List<String> tags) {
-        return (root, cq, cb) -> tags == null ? null :
-                root.get("tags").in(tags);
+        return (root, cq, cb) -> {
+            if (tags == null || tags.isEmpty()) return null;
+            cq.distinct(true);
+            return root.joinList("tags").in(tags);
+        };
     }
 }

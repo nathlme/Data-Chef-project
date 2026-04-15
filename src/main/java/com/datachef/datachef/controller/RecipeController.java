@@ -14,6 +14,7 @@ import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,33 +26,31 @@ import java.util.UUID;
 @RequestMapping("api/recipe")
 public class RecipeController implements RecipeSwaggerApi {
 
-    @Autowired
-    private RecipeService recipeService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<RecipeDTO> getRecipe(@PathVariable UUID id){
-        RecipeDTO recipe = recipeService.getRecipeDTOFromUUID(id);
-        return ResponseEntity.ok(recipe);
+    private final RecipeService recipeService;
+
+    public RecipeController(RecipeService recipeService) {
+        this.recipeService = recipeService;
     }
 
     @PostMapping(path = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<RecipeDTO> createRecipe(@RequestPart("recipe") CreateRecipeDTO recipeDetails, @RequestPart(value = "image", required = false) MultipartFile file){
-         Recipe recipe = recipeService.createRecipe(recipeDetails, file);
+    public ResponseEntity<RecipeDTO> createRecipe(@RequestPart("recipe") CreateRecipeDTO recipeDetails, @RequestPart(value = "image", required = false) MultipartFile file, @AuthenticationPrincipal UserDetails userDetails){
+         Recipe recipe = recipeService.createRecipe(recipeDetails, userDetails, file);
 
         return ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
     }
 
     @PatchMapping(path="/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<RecipeDTO> updateRecipe(UpdateRecipeDTO recipeDTO, @PathVariable UUID id, @RequestPart(value = "image") MultipartFile file) throws IOException {
+    public ResponseEntity<RecipeDTO> updateRecipe(UpdateRecipeDTO recipeDTO, @PathVariable UUID id, @RequestPart(value = "image") MultipartFile file, @AuthenticationPrincipal UserDetails userDetail) throws IOException {
 
-        Recipe recipe = recipeService.updateRecipe(recipeDTO, id, file);
+        Recipe recipe = recipeService.updateRecipe(recipeDTO, userDetail, id, file);
 
         return  ResponseEntity.ok(RecipeDTO.convertToDTO(recipe));
     }
 
-    @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void>  deleteRecipe(@PathVariable UUID id){
-            recipeService.deleteRecipe(id);
+    @DeleteMapping(path = "/delete/{id}")
+    public ResponseEntity<Void>  deleteRecipe(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails){
+            recipeService.deleteRecipe(id, userDetails);
             return ResponseEntity.noContent().build();
     }
 
@@ -65,7 +64,7 @@ public class RecipeController implements RecipeSwaggerApi {
     @GetMapping("/search")
     public ResponseEntity<List<RecipeDTO>> search(
             @RequestParam(required = false) String query,
-            @RequestParam(required = false) Difficulty difficulty,
+            @RequestParam(required = false) String difficulty,
             @RequestParam(required = false) List<String> tags
     ) {
         return ResponseEntity.ok(recipeService.search(query, difficulty, tags));

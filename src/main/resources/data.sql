@@ -1,16 +1,12 @@
--- =====================================================
--- Script de données de test pour DataChef
--- Compatible avec le modèle actuel
--- =====================================================
 
--- 1. Insertion des utilisateurs de test
+
 INSERT INTO users (id, username, email, password_hash, image_key, is_active, role, created_at, updated_at)
 VALUES
     (gen_random_uuid(), 'chef_marie', 'marie@datachef.com', '$2a$10$dummyhash1', 'users/default-default-user.jpg', true, 'USER', NOW(), NOW()),
     (gen_random_uuid(), 'chef_pierre', 'pierre@datachef.com', '$2a$10$dummyhash2', 'users/default-default-user.jpg', true, 'USER', NOW(), NOW()),
     (gen_random_uuid(), 'admin', 'admin@datachef.com', '$2a$10$dummyhash3', 'users/default-default-user.jpg', true, 'ADMIN', NOW(), NOW());
 
--- 2. Insertion des ingrédients
+
 INSERT INTO ingredient (id, name, name_plural, category, aisle, allergens, common_units, is_active, image_key, created_at, updated_at)
 VALUES
     -- Légumes
@@ -50,11 +46,11 @@ VALUES
     (gen_random_uuid(), 'Four', 'Four électrique ou gaz', 'COOKWARE', 'ESSENTIAL', true, 'utensil/default-utensil.jpg'),
     (gen_random_uuid(), 'Râpe', 'Pour fromage', 'PREPARATION', 'OPTIONAL', true, 'utensil/default-utensil.jpg');
 
--- 4. Insertion des recettes
+-- 4. Insertion des recettes (sans la colonne tags)
 WITH user_marie AS (
     SELECT id FROM users WHERE username = 'chef_marie' LIMIT 1
     )
-INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, tags, is_public, created_by, nutriscore, image_key,image_hash, created_at, updated_at)
+INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, is_public, created_by, nutriscore, image_key, image_hash, created_at, updated_at)
 SELECT
     gen_random_uuid(),
     'Pâtes Carbonara',
@@ -71,7 +67,6 @@ SELECT
         {"step": 4, "title": "Assemblage", "description": "Égoutter les pâtes en gardant un peu d''eau de cuisson. Mélanger rapidement avec la sauce aux œufs."},
         {"step": 5, "title": "Finition", "description": "Ajouter du poivre noir fraîchement moulu et servir immédiatement."}
     ]'::jsonb,
-    ARRAY['italien', 'rapide', 'pâtes']::text[],
     true,
     (SELECT id FROM user_marie),
     2,
@@ -83,7 +78,7 @@ SELECT
 WITH user_pierre AS (
     SELECT id FROM users WHERE username = 'chef_pierre' LIMIT 1
     )
-INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, tags, is_public, created_by, nutriscore, image_key,image_hash, created_at, updated_at)
+INSERT INTO recipe (id, name, description, prep_time_minutes, cook_time_minutes, rest_time_minutes, difficulty, servings, instructions, is_public, created_by, nutriscore, image_key, image_hash, created_at, updated_at)
 SELECT
     gen_random_uuid(),
     'Poulet rôti aux légumes',
@@ -100,7 +95,6 @@ SELECT
         {"step": 4, "title": "Cuisson", "description": "Enfourner pour 60 minutes en arrosant régulièrement."},
         {"step": 5, "title": "Repos", "description": "Laisser reposer 10 minutes avant de découper."}
     ]'::jsonb,
-    ARRAY['rôti', 'four', 'familial']::text[],
     true,
     (SELECT id FROM user_pierre),
     1,
@@ -108,6 +102,22 @@ SELECT
     'C5D3A6E02BEC389B1A8A593B4CC25445',
     NOW(),
     NOW();
+
+-- 4b. Insertion des tags dans recipe_tags
+INSERT INTO recipe_tags (recipe_id, tag)
+SELECT id, 'italien' FROM recipe WHERE name = 'Pâtes Carbonara'
+UNION ALL
+SELECT id, 'rapide' FROM recipe WHERE name = 'Pâtes Carbonara'
+UNION ALL
+SELECT id, 'pâtes' FROM recipe WHERE name = 'Pâtes Carbonara'
+UNION ALL
+SELECT id, 'poulet' FROM recipe WHERE name = 'Poulet rôti aux légumes'
+UNION ALL
+SELECT id, 'rôti' FROM recipe WHERE name = 'Poulet rôti aux légumes'
+UNION ALL
+SELECT id, 'four' FROM recipe WHERE name = 'Poulet rôti aux légumes'
+UNION ALL
+SELECT id, 'familial' FROM recipe WHERE name = 'Poulet rôti aux légumes';
 
 -- 5. Liaison Recipe-Ingredients
 WITH

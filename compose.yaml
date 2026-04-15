@@ -2,11 +2,14 @@ services:
   app:
     container_name: "datachef-api"
     image: ldlms/datachef-api
+    depends_on:
+      - minio
+      - postgres
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8281:8080"
       - "5005:5005"
     environment:
       - SPRING_PROFILES_ACTIVE=development
@@ -24,11 +27,6 @@ services:
       - MINIO_BUCKET=${MINIO_BUCKET}
     env_file:
       - .env
-    depends_on:
-      minio:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
     networks:
       - datachef-network
     restart: unless-stopped
@@ -41,7 +39,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     ports:
       - "9002:9000"
-      - "9001:9001"
+      - "9003:9001"
     volumes:
       - minio_data:/data
     networks:
@@ -56,8 +54,7 @@ services:
   minio-init:
     image: minio/mc
     depends_on:
-      minio:
-        condition: service_healthy
+      - minio
     entrypoint: [ "/bin/sh", "/init.sh" ]
     environment:
       MINIO_ENDPOINT: ${MINIO_INTERNAL_ENDPOINT}

@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,15 +62,8 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public RecipeDTO getRecipeDTOFromUUID(UUID recipeId) {
-        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new RuntimeException("no recipe found"));
-        recipe.setImageKey(imageService.getImageUrl(recipeId));
-        return RecipeDTO.convertToDTO(recipe);
-    }
-
-    @Override
     @Transactional
-    public Recipe createRecipe(CreateRecipeDTO recipeDTO, MultipartFile file) {
+    public Recipe createRecipe(CreateRecipeDTO recipeDTO, UserDetails userDetails, MultipartFile file) {
 
         Recipe newRecipe = new Recipe(
                 recipeDTO.name(),
@@ -83,7 +77,7 @@ public class RecipeServiceImpl implements RecipeService {
                 recipeDTO.nutriscore()
         );
 
-        Users user = userRepository.findById(recipeDTO.creator()).orElseThrow(() -> new EntityNotFound(Users.class));
+        Users user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new EntityNotFound(Users.class));
         newRecipe.setCreatedBy(user);
 
         Recipe savedRecipe = recipeRepository.save(newRecipe);
@@ -118,8 +112,12 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     @Transactional
-    public Recipe updateRecipe(UpdateRecipeDTO recipeDTO, UUID id, MultipartFile file) throws IOException {
+    public Recipe updateRecipe(UpdateRecipeDTO recipeDTO, UserDetails userDetails, UUID id, MultipartFile file) throws IOException {
         Recipe recipeToUpdate = recipeRepository.findById(id).orElseThrow(() -> new EntityNotFound(Recipe.class));
+
+        if(!recipeToUpdate.getCreatedBy().getUsername().equals(userDetails.getUsername())){
+            throw new IllegalAccessError("Not your own recipe");
+        }
 
         recipeToUpdate.setName(recipeDTO.name());
         recipeToUpdate.setDescription(recipeDTO.description());
@@ -159,7 +157,7 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     @Transactional
-    public void deleteRecipe(UUID recipeId) {
+    public void deleteRecipe(UUID recipeId, UserDetails userDetails) {
             recipeRepository.deleteById(recipeId);
             imageService.deleteImage(recipeId);
     }
@@ -174,7 +172,7 @@ public class RecipeServiceImpl implements RecipeService {
         return recipes.stream().map(RecipeDTO::convertToDTO).toList();
     }
 
-    public List<RecipeDTO> search(String query, Difficulty difficulty, List<String> tags) {
+    public List<RecipeDTO> search(String query, String difficulty, List<String> tags) {
         Specification<Recipe> spec = Specification
                 .where(RecipeSpecification.hasName(query))
                 .and(RecipeSpecification.hasDifficulty(difficulty))

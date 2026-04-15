@@ -34,7 +34,7 @@ public interface UserSwaggerApi {
             @ApiResponse(responseCode = "500", description = "Erreur serveur inattendue",
                     content = @Content(schema = @Schema(example = "{\"message\": \"An error occurred\"}")))
     })
-    ResponseEntity<ProfileDTO> getMyAccountByUsername(
+    ResponseEntity<ProfileDTO> getAccountByUsername(
             @Parameter(description = "Nom d'utilisateur", required = true, example = "johndoe")
             @PathVariable String username
     );

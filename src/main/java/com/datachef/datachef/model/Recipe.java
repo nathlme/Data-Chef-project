@@ -98,7 +98,9 @@ public class Recipe {
     )
     private Short totalTimeMinutes;
 
-    @Column(name = "tags", columnDefinition = "TEXT[]")
+    @ElementCollection
+    @CollectionTable(name = "recipe_tags", joinColumns = @JoinColumn(name = "recipe_id"))
+    @Column(name = "tag")
     private List<String> tags;
 
     @Column(name = "is_public", nullable = false)

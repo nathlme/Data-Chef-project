@@ -35,9 +35,6 @@ public record CreateRecipeDTO(
         @Schema(description = "Tags associés à la recette", example = "[\"dessert\", \"végétarien\"]")
         List<String> tags,
 
-        @Schema(description = "UUID du créateur de la recette", example = "550e8400-e29b-41d4-a716-446655440000")
-        UUID creator,
-
         @Schema(description = "Liste des ingrédients")
         List<CreateRecipeIngredientDTO> ingredient,
 

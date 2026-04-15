@@ -1,4 +1,8 @@
 package com.datachef.datachef.dto.mealplan;
 
-public record WeekPlanDTO() {
-}
+import java.time.LocalDate;
+import java.util.Map;
+
+public record WeekPlanDTO(
+        Map<LocalDate, DayPlanDTO> days
+) {}

@@ -39,6 +39,9 @@ public class Utensil {
 
     private String imageKey;
 
+    @Column(name = "image_hash")
+    private String imageHash;
+
     @OneToMany(mappedBy = "utensil")
     private List<RecipeUtensil> recipeUtensils = new ArrayList<>();
 }

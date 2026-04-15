@@ -5,6 +5,7 @@ import com.datachef.datachef.dto.recipe.CreateRecipeDTO;
 import com.datachef.datachef.dto.recipe.RecipeDTO;
 import com.datachef.datachef.dto.recipe.UpdateRecipeDTO;
 import com.datachef.datachef.model.Recipe;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,10 +17,9 @@ public interface RecipeService {
 
 
     Optional<RecipeDTO> getRecipeDTOFromName(String recipeName);
-    RecipeDTO getRecipeDTOFromUUID(UUID recipeId);
-    Recipe createRecipe(CreateRecipeDTO recipeDTO, MultipartFile file);
-    Recipe updateRecipe(UpdateRecipeDTO recipeDTO, UUID id, MultipartFile file) throws IOException;
-    void deleteRecipe(UUID recipeId);
+    Recipe createRecipe(CreateRecipeDTO recipeDTO, UserDetails userDetails, MultipartFile file);
+    Recipe updateRecipe(UpdateRecipeDTO recipeDTO, UserDetails userDetails, UUID id, MultipartFile file) throws IOException;
+    void deleteRecipe(UUID recipeId, UserDetails userDetails);
     List<RecipeDTO> getAllRecipe();
-    List<RecipeDTO> search(String query, Difficulty difficulty, List<String> tags);
+    List<RecipeDTO> search(String query, String difficulty, List<String> tags);
 }

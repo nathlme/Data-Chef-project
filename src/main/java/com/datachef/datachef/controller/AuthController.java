@@ -24,14 +24,14 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController implements AuthSwaggerApi {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final RefreshCookieConfig cookieConfig;
 
-    @Autowired
-    private RefreshCookieConfig cookieConfig;
+    public AuthController(AuthService authService, RefreshCookieConfig cookieConfig) {
+        this.authService = authService;
+        this.cookieConfig = cookieConfig;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {

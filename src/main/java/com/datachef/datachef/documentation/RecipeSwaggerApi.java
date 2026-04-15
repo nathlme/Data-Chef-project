@@ -1,6 +1,5 @@
 package com.datachef.datachef.documentation;
 
-import com.datachef.datachef.Enum.Difficulty;
 import com.datachef.datachef.dto.recipe.CreateRecipeDTO;
 import com.datachef.datachef.dto.recipe.RecipeDTO;
 import com.datachef.datachef.dto.recipe.UpdateRecipeDTO;
@@ -12,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,16 +23,6 @@ import java.util.UUID;
 @Tag(name = "Recipes", description = "Gestion des recettes")
 public interface RecipeSwaggerApi {
 
-    @Operation(summary = "Récupère une recette par son ID")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Recette trouvée",
-                    content = @Content(schema = @Schema(implementation = RecipeDTO.class))),
-            @ApiResponse(responseCode = "404", description = "Recette non trouvée", content = @Content)
-    })
-    ResponseEntity<RecipeDTO> getRecipe(
-            @Parameter(description = "UUID de la recette") @PathVariable UUID id
-    );
-
     @Operation(summary = "Crée une nouvelle recette")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Recette créée avec succès",
@@ -40,7 +31,8 @@ public interface RecipeSwaggerApi {
     })
     ResponseEntity<RecipeDTO> createRecipe(
             @Parameter(description = "Détails de la recette") @RequestPart("recipe") CreateRecipeDTO recipeDetails,
-            @Parameter(description = "Image de la recette (optionnelle)") @RequestPart(value = "image", required = false) MultipartFile file
+            @Parameter(description = "Image de la recette (optionnelle)") @RequestPart(value = "image", required = false) MultipartFile file,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetail
     );
 
     @Operation(summary = "Met à jour une recette existante")
@@ -53,16 +45,19 @@ public interface RecipeSwaggerApi {
     ResponseEntity<RecipeDTO> updateRecipe(
             @Parameter(description = "Données de mise à jour") UpdateRecipeDTO recipeDTO,
             @Parameter(description = "UUID de la recette") @PathVariable UUID id,
-            @Parameter(description = "Nouvelle image") @RequestPart(value = "image") MultipartFile file
+            @Parameter(description = "Nouvelle image") @RequestPart(value = "image") MultipartFile file,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetail
+
     ) throws IOException;
 
     @Operation(summary = "Supprime une recette")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Recette supprimée", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Recette non trouvée", content = @Content)
+            @ApiResponse(responseCode = "404", description = "Recette non trouvée", content = @Content),
     })
     ResponseEntity<Void> deleteRecipe(
-            @Parameter(description = "UUID de la recette") @PathVariable UUID id
+            @Parameter(description = "UUID de la recette") @PathVariable UUID id,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetail
     );
 
     @Operation(summary = "Récupère une recette par son nom")
@@ -82,7 +77,7 @@ public interface RecipeSwaggerApi {
     })
     ResponseEntity<List<RecipeDTO>> search(
             @Parameter(description = "Texte de recherche") @RequestParam(required = false) String query,
-            @Parameter(description = "Niveau de difficulté") @RequestParam(required = false) Difficulty difficulty,
+            @Parameter(description = "Niveau de difficulté") @RequestParam(required = false) String difficulty,
             @Parameter(description = "Liste de tags") @RequestParam(required = false) List<String> tags
     );
 

@@ -34,38 +34,34 @@ public class Ingredient {
     @Column(nullable = false, length = 50)
     private IngredientCategory category;
 
-
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
     private Aisle aisle = Aisle.AUTRE;
 
-
     @Column(name = "allergens")
     private List<String> allergens = new ArrayList<>();
-
 
     @Column(name = "diet_tags")
     @ManyToMany
     @JoinTable(name = "ingredient_diet_type", joinColumns = @JoinColumn(name = "ingredient_id"), inverseJoinColumns = @JoinColumn(name = "diet_type_id"))
     private List<DietType> dietTags = new ArrayList<>();
 
-
     @Column(name = "common_units")
     @Enumerated(EnumType.STRING)
     private List<MeasurementUnit> commonUnits;
 
-    // Substitutions possibles (array d'IDs)
     @Column(name = "substitutes", columnDefinition = "BIGINT[]")
     private List<Long> substitutes = new ArrayList<>();
 
-    // Métadonnées
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
     @Column(name = "image_key", length = 500)
     private String imageKey;
 
-    // Relation avec RecipeIngredient
+    @Column(name = "image_hash")
+    private String imageHash;
+
     @OneToMany(mappedBy = "ingredient")
     private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
 

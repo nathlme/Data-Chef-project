@@ -24,8 +24,8 @@ public class UserController implements UserSwaggerApi {
         this.userService = userService;
     }
 
-    @GetMapping("/{username}")
-    public ResponseEntity<ProfileDTO> getMyAccountByUsername(@PathVariable String username) {
+    @GetMapping("/profile/{username}")
+    public ResponseEntity<ProfileDTO> getAccountByUsername(@PathVariable String username) {
             return ResponseEntity.ok().body(userService.getMyProfileByUsername(username));
     }
 
@@ -34,7 +34,7 @@ public class UserController implements UserSwaggerApi {
         return ResponseEntity.ok().body(userService.updateProfile(profileDTO, file));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteProfile(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
