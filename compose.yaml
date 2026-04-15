@@ -90,7 +90,7 @@ services:
 
 networks:
   datachef-network:
-    driver: bridge
+    driver: overlay
 
 volumes:
   postgres-data:
