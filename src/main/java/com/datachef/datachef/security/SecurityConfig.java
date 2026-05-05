@@ -37,6 +37,7 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http
