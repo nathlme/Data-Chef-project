@@ -59,6 +59,43 @@ Data Chef est une application web ayant pour but de faciliter la gestion des rep
 
 ## Projet actuellement en cours de développement 
 
+## Mock API (Swagger/OpenAPI)
+
+Vous pouvez simuler le back-end localement a partir du fichier `apiswaggerjson.json`.
+
+1. Creer `.env.local` a la racine du projet avec cette ligne :
+
+```env
+VITE_API_BASE_URL=http://localhost:4010
+VITE_ENABLE_LOCAL_AUTH_MOCK=true
+```
+
+2. Lancer la fausse API (terminal 1) :
+
+```bash
+npm run mock:api
+```
+
+3. Lancer le front (terminal 2) :
+
+```bash
+npm run dev
+```
+
+URL mock par defaut : `http://localhost:4010`.
+
+Le front peut ensuite lire `import.meta.env.VITE_API_BASE_URL` pour faire ses requetes.
+
+### Compte de test pre-cree (mock auth local)
+
+Quand `VITE_ENABLE_LOCAL_AUTH_MOCK=true`, la connexion/inscription est geree localement pour simuler un vrai controle d'existence de compte.
+
+- Username: `demo`
+- Email: `demo@datachef.local`
+- Password: `Demo123!`
+
+Si le compte n'existe pas, la connexion retourne une erreur 401 (comme un vrai back).
+
 
 
 

@@ -1,27 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { FaClock, FaHeart, FaRegHeart } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { recipes } from "../data/recipes";
 import fastFood from "../assets/Black icons/Fast Food.png";
 import healthyFood from "../assets/Black icons/Healthy Food.png";
 import hot from "../assets/Black icons/Hot.png";
 import broccoli from "../assets/Black icons/Broccoli.png";
 import strawberryCheesecake from "../assets/Black icons/Strawberry Cheesecake.png";
+import miniLogo from "../assets/Mini logo cloud.png";
+import { apiClient } from "../api";
+import { mapRecipeDtoToCatalogueRecipe, type CatalogueRecipe } from "../utils/recipeCatalog";
 
 const CataloguePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [openFilter, setOpenFilter] = useState<string | null>(null);
-  const [culinaryPreferences, setCulinaryPreferences] = useState<string[]>([]);
-  const [practicalConstraints, setPracticalConstraints] = useState<string[]>([]);
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recipes, setRecipes] = useState<CatalogueRecipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const recipesPerPage = 12;
 
   // Mettre à jour le titre de la page
   useEffect(() => {
-    document.title = "Catalogue de Recettes - Data Chef";
+    document.title = "Catalogue - Data Chef";
   }, []);
 
   // Lire le paramètre de catégorie depuis l'URL au chargement
@@ -31,360 +34,276 @@ const CataloguePage: React.FC = () => {
       setSelectedCategory(parseInt(categoryParam));
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRecipes = async () => {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const recipeList = await apiClient.recipes.getAll();
+        if (!isMounted) return;
+
+        setRecipes(recipeList.map(mapRecipeDtoToCatalogueRecipe));
+      } catch {
+        if (!isMounted) return;
+
+        setErrorMessage("Impossible de charger les recettes depuis le back.");
+        setRecipes([]);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadRecipes();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   
   // Données des catégories
   const categories = [
-    { id: 1, name: "Plats chauds", icon: hot },
-    { id: 2, name: "Plats rapides", icon: fastFood },
+    { id: 1, name: "Plats Chauds", icon: hot },
+    { id: 2, name: "Plats Rapides", icon: fastFood },
     { id: 3, name: "Healthy", icon: healthyFood },
-    { id: 4, name: "Végétarien", icon: broccoli },
+    { id: 4, name: "Végétariens", icon: broccoli },
     { id: 5, name: "Desserts", icon: strawberryCheesecake },
   ];
 
-  // Utiliser les recettes du fichier centralisé
-  const allRecipes = recipes;
+  // Toggle favorites
+  const toggleFavorite = (recipeId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFavorites(prev => 
+      prev.includes(recipeId) 
+        ? prev.filter(id => id !== recipeId)
+        : [...prev, recipeId]
+    );
+  };
 
-  // Filtrer les recettes selon la catégorie et les filtres sélectionnés
-  const filteredRecipes = allRecipes.filter(recipe => {
-    // Filtre par catégorie
+  // Get difficulty badge color
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'très facile':
+      case 'facile':
+      case 'easy':
+        return 'bg-[#7CCB7D]';
+      case 'intermédiaire':
+      case 'moyen':
+      case 'medium':
+        return 'bg-[#FFA726]';
+      case 'difficile':
+      case 'hard':
+        return 'bg-[#EF5350]';
+      default:
+        return 'bg-gray-400';
+    }
+  };
+
+  // Filtrer les recettes selon la catégorie sélectionnée
+  const filteredRecipes = recipes.filter(recipe => {
     if (selectedCategory && recipe.categoryId !== selectedCategory) return false;
-    
-    // Filtre par préférences culinaires
-    if (culinaryPreferences.length > 0) {
-      const hasMatch = culinaryPreferences.some(pref => recipe.filters.culinary.includes(pref));
-      if (!hasMatch) return false;
-    }
-    
-    // Filtre par contraintes pratiques
-    if (practicalConstraints.length > 0) {
-      const hasMatch = practicalConstraints.some(constraint => recipe.filters.practical.includes(constraint));
-      if (!hasMatch) return false;
-    }
-    
-    // Filtre par ingrédients
-    if (ingredients.length > 0) {
-      const hasMatch = ingredients.some(ingredient => recipe.filters.ingredients.includes(ingredient));
-      if (!hasMatch) return false;
-    }
-    
     return true;
   });
 
   // Pagination logic
   const totalPages = Math.ceil(filteredRecipes.length / recipesPerPage);
-  const startIndex = currentPage * recipesPerPage;
+  const startIndex = (currentPage - 1) * recipesPerPage;
   const paginatedRecipes = filteredRecipes.slice(startIndex, startIndex + recipesPerPage);
 
   // Reset to first page when filters change
   useEffect(() => {
-    setCurrentPage(0);
-  }, [selectedCategory, culinaryPreferences, practicalConstraints, ingredients]);
+    setCurrentPage(1);
+  }, [selectedCategory]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-gray-100 relative overflow-hidden">
       
-      <main className="flex-grow pt-32 pb-16 px-4">
+      <Header />
+
+      {/* Very large decorative logo spanning multiple sections */}
+      <div className="absolute right-0 top-[10%] w-500 h-500 -translate-x-1/4 pointer-events-none z-1">
+        <img 
+          src={miniLogo} 
+          alt="Chef decoration" 
+          className="w-full h-full object-contain opacity-25"
+        />
+      </div>
+      
+      <main className="grow pt-28 pb-16 px-4 relative z-10">
         <div className="container mx-auto max-w-7xl">
-          {/* Section Catégories */}
-          <section className="mb-16">
-            <h2 className="text-5xl font-bold text-center mb-24 mt-8">Catégories</h2>
-            <div className="flex justify-center gap-20 flex-wrap">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
-                  className="flex flex-col items-center gap-2 cursor-pointer"
-                >
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center p-4 transition-all duration-200 hover:scale-105 ${
-                    selectedCategory === category.id 
-                      ? 'bg-[#3695e4] ring-2 ring-opacity-50' 
-                      : 'bg-[#8ACBFF] border-2 border-gray-300'
-                  }`}>
-                    <img 
-                      src={category.icon} 
-                      alt={category.name} 
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className={`text-sm px-3 py-1 ${
-                    selectedCategory === category.id ? 'font-semibold' : 'font-medium'
-                  }`}>
-                    {category.name}
-                  </span>
+          {/* Title */}
+          <h1 className="text-5xl font-bold text-center mb-12">Catalogue</h1>
+
+          {/* Categories */}
+          <div className="flex justify-center gap-12 mb-8 flex-wrap">
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                className="flex flex-col items-center gap-3 cursor-pointer group"
+              >
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center p-4 shadow-lg transition-all duration-200 ${
+                  selectedCategory === category.id 
+                    ? 'bg-[#6BB8E8] scale-110 ring-4 ring-[#8ACBFF]/30' 
+                    : 'bg-[#8ACBFF] group-hover:scale-105'
+                }`}>
+                  <img 
+                    src={category.icon} 
+                    alt={category.name} 
+                    className="w-full h-full object-contain filter brightness-0 invert"
+                  />
                 </div>
-              ))}
-            </div>
-
-            {/* Filtres supplémentaires */}
-            <div className="flex justify-center gap-18 mt-8 flex-wrap relative">
-              {/* Préférences culinaires */}
-              <div className="relative">
-                <button 
-                  onClick={() => setOpenFilter(openFilter === 'culinary' ? null : 'culinary')}
-                  className={`px-6 py-2 text-white rounded-full transition-all font-medium ${
-                    openFilter === 'culinary' ? 'bg-green-400' : 'bg-[#8ACBFF]'
-                  }`}
-                >
-                  Préférences culinaires {openFilter === 'culinary' ? '▴' : '▾'}
-                </button>
-                
-                {openFilter === 'culinary' && (
-                  <div className="absolute top-full mt-2 bg-white rounded-lg shadow-xl p-6 w-80 z-20 border border-gray-200">
-                    {/* Régimes & besoins alimentaires */}
-                    <div className="mb-6">
-                      <h4 className="text-gray-400 text-xs mb-3 uppercase tracking-wide">Régimes & besoins alimentaires</h4>
-                      <div className="space-y-2">
-                        {['Végétarien', 'Vegan', 'Sans lactose', 'Sans gluten', 'Low carb', 'Riche en protéines', 'Healthy & équilibré'].map((item) => (
-                          <label key={item} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            <input type="checkbox" className="w-4 h-4 accent-green-400" 
-                              checked={culinaryPreferences.includes(item)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setCulinaryPreferences([...culinaryPreferences, item]);
-                                } else {
-                                  setCulinaryPreferences(culinaryPreferences.filter(p => p !== item));
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{item}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Cuisine du monde */}
-                    <div className="mb-6">
-                      <h4 className="text-gray-400 text-xs mb-3 uppercase tracking-wide">Cuisine du monde</h4>
-                      <div className="space-y-2">
-                        {['Française', 'Italienne', 'Japonaise', 'Mexicaine', 'Indienne', 'Thaï', 'Méditerranée'].map((item) => (
-                          <label key={item} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            <input type="checkbox" className="w-4 h-4 accent-green-400"
-                              checked={culinaryPreferences.includes(item)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setCulinaryPreferences([...culinaryPreferences, item]);
-                                } else {
-                                  setCulinaryPreferences(culinaryPreferences.filter(p => p !== item));
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{item}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Envie / Mood */}
-                    <div className="mb-4">
-                      <h4 className="text-gray-400 text-xs mb-3 uppercase tracking-wide">Envie / Mood</h4>
-                      <div className="space-y-2">
-                        {['Comfort food', 'Léger & frais', 'Épicé', 'À partager'].map((item) => (
-                          <label key={item} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            <input type="checkbox" className="w-4 h-4 accent-green-400"
-                              checked={culinaryPreferences.includes(item)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setCulinaryPreferences([...culinaryPreferences, item]);
-                                } else {
-                                  setCulinaryPreferences(culinaryPreferences.filter(p => p !== item));
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{item}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button className="w-full mt-4 py-2 text-green-500 text-sm font-medium hover:bg-green-50 rounded transition-colors">
-                      Appliquer
-                    </button>
-                  </div>
-                )}
+                <span className={`text-sm font-medium ${
+                  selectedCategory === category.id ? 'text-gray-900 font-semibold' : 'text-gray-700'
+                }`}>
+                  {category.name}
+                </span>
               </div>
+            ))}
+          </div>
 
-              {/* Contraintes pratiques */}
-              <div className="relative">
-                <button 
-                  onClick={() => setOpenFilter(openFilter === 'practical' ? null : 'practical')}
-                  className={`px-6 py-2 text-white rounded-full transition-all font-medium ${
-                    openFilter === 'practical' ? 'bg-green-400' : 'bg-[#8ACBFF]'
-                  }`}
-                >
-                  Contraintes pratiques {openFilter === 'practical' ? '▴' : '▾'}
-                </button>
-                
-                {openFilter === 'practical' && (
-                  <div className="absolute top-full mt-2 bg-white rounded-lg shadow-xl p-6 w-80 z-20 border border-gray-200">
-                    {/* Temps & difficulté */}
-                    <div className="mb-6">
-                      <h4 className="text-gray-400 text-xs mb-3 uppercase tracking-wide">Temps & difficulté</h4>
-                      <div className="space-y-2">
-                        {['Moins de 10 min', 'Moins de 20 min', '30 min max', 'Longue cuisson', 'Très facile', 'Facile', 'Intermédiaire'].map((item) => (
-                          <label key={item} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            <input type="checkbox" className="w-4 h-4 accent-green-400"
-                              checked={practicalConstraints.includes(item)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setPracticalConstraints([...practicalConstraints, item]);
-                                } else {
-                                  setPracticalConstraints(practicalConstraints.filter(p => p !== item));
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{item}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
+          {/* Filter Buttons */}
+          <div className="flex justify-center gap-4 mb-12 flex-wrap">
+            <button className="px-6 py-2 bg-[#8ACBFF] hover:bg-[#7AB8FF] text-white font-medium rounded-full transition-colors shadow-md">
+              Préférences culinaires
+            </button>
+            <button className="px-6 py-2 bg-[#8ACBFF] hover:bg-[#7AB8FF] text-white font-medium rounded-full transition-colors shadow-md">
+              Contraintes pratiques
+            </button>
+            <button className="px-6 py-2 bg-[#8ACBFF] hover:bg-[#7AB8FF] text-white font-medium rounded-full transition-colors shadow-md">
+              Mes ingrédients
+            </button>
+          </div>
 
-                    {/* Contexte & budget */}
-                    <div className="mb-4">
-                      <h4 className="text-gray-400 text-xs mb-3 uppercase tracking-wide">Contexte & budget</h4>
-                      <div className="space-y-2">
-                        {['Batch cooking', 'Recettes famille', 'Repas transportables / tupperware', 'Budget mini', "Peu d'ustensiles", 'Idées de dernière minute'].map((item) => (
-                          <label key={item} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            <input type="checkbox" className="w-4 h-4 accent-green-400"
-                              checked={practicalConstraints.includes(item)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setPracticalConstraints([...practicalConstraints, item]);
-                                } else {
-                                  setPracticalConstraints(practicalConstraints.filter(p => p !== item));
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{item}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button className="w-full mt-4 py-2 text-green-500 text-sm font-medium hover:bg-green-50 rounded transition-colors">
-                      Appliquer
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Par ingrédients */}
-              <div className="relative">
-                <button 
-                  onClick={() => setOpenFilter(openFilter === 'ingredients' ? null : 'ingredients')}
-                  className={`px-6 py-2 text-white rounded-full transition-all font-medium ${
-                    openFilter === 'ingredients' ? 'bg-green-400' : 'bg-[#8ACBFF]'
-                  }`}
-                >
-                  Par ingrédients {openFilter === 'ingredients' ? '▴' : '▾'}
-                </button>
-                
-                {openFilter === 'ingredients' && (
-                  <div className="absolute top-full mt-2 bg-white rounded-lg shadow-xl p-6 w-80 z-20 border border-gray-200">
-                    {/* Ingrédients principaux */}
-                    <div className="mb-6">
-                      <h4 className="text-gray-400 text-xs mb-3 uppercase tracking-wide">Ingrédients principaux</h4>
-                      <div className="space-y-2">
-                        {['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Fromage', 'Légumes', 'Pâtes & riz'].map((item) => (
-                          <label key={item} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            <input type="checkbox" className="w-4 h-4 accent-green-400"
-                              checked={ingredients.includes(item)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setIngredients([...ingredients, item]);
-                                } else {
-                                  setIngredients(ingredients.filter(p => p !== item));
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{item}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Mode anti-gaspi */}
-                    <div className="mb-4">
-                      <h4 className="text-gray-400 text-xs mb-3 uppercase tracking-wide">Mode anti-gaspi</h4>
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                        <input type="checkbox" className="w-4 h-4 accent-green-400"
-                          checked={ingredients.includes('À faire avec ce qu\'on a chez soi')}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setIngredients([...ingredients, 'À faire avec ce qu\'on a chez soi']);
-                            } else {
-                              setIngredients(ingredients.filter(p => p !== 'À faire avec ce qu\'on a chez soi'));
-                            }
-                          }}
-                        />
-                        <span className="text-sm">À faire avec ce qu'on a chez soi</span>
-                      </label>
-                    </div>
-
-                    <button className="w-full mt-4 py-2 text-green-500 text-sm font-medium hover:bg-green-50 rounded transition-colors">
-                      Appliquer
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Section Recettes */}
+          {/* Recettes Section */}
           <section>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold">Recettes</h2>
-              {selectedCategory && (
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm transition-colors"
-                >
-                  Afficher toutes les recettes
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <h2 className="text-3xl font-bold mb-8 text-gray-900">Recettes</h2>
+
+            {errorMessage ? (
+              <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {errorMessage}
+              </div>
+            ) : null}
+
+            {isLoading ? (
+              <div className="rounded-3xl bg-white px-6 py-12 text-center shadow-md text-gray-600">
+                Chargement des recettes...
+              </div>
+            ) : null}
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {paginatedRecipes.map((recipe) => (
-                <Link
-                  key={recipe.id}
-                  to={`/recette/${recipe.id}`}
-                  onClick={() => window.scrollTo(0, 0)}
-                  className="group cursor-pointer"
-                >
-                  <div className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden mb-3 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-lg">
-                    <img 
-                      src={recipe.image} 
-                      alt={recipe.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Overlay avec description au survol */}
-                    <div className="absolute inset-0 bg-black bg-opacity-70 opacity-0 group-hover:opacity-80 transition-opacity duration-300 flex items-center justify-center p-4">
-                      <p className="text-white text-center text-sm leading-relaxed">
-                        {recipe.description}
-                      </p>
+                recipe.detailPath ? (
+                  <Link
+                    key={recipe.id}
+                    to={recipe.detailPath}
+                    onClick={() => window.scrollTo(0, 0)}
+                    className="group"
+                  >
+                    <div className="bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-shadow">
+                    {/* Recipe Image with Badge */}
+                    <div className="relative aspect-square mb-3">
+                      <div className="w-full h-full rounded-full overflow-hidden shadow-lg">
+                        <img 
+                          src={recipe.image} 
+                          alt={recipe.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      {/* Difficulty Badge */}
+                      <div className={`absolute top-2 left-2 px-3 py-1 rounded-full text-white text-xs font-semibold ${getDifficultyColor(recipe.difficulty)}`}>
+                        {recipe.difficulty}
+                      </div>
+                      {/* Time Badge */}
+                      <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+                        <FaClock className="text-gray-600 text-xs" />
+                        <span className="text-xs font-semibold text-gray-700">{recipe.time}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Recipe Info */}
+                    <div className="space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-gray-900 text-sm grow">{recipe.name}</h3>
+                        <button
+                          onClick={(e) => toggleFavorite(recipe.id, e)}
+                          className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                        >
+                          {favorites.includes(recipe.id) ? (
+                            <FaHeart className="text-red-500" size={18} />
+                          ) : (
+                            <FaRegHeart size={18} />
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400">{categories.find(c => c.id === recipe.categoryId)?.name || 'Plat'}</p>
                     </div>
                   </div>
-                  <div className="h-8 bg-gray-200 rounded flex items-center justify-center">
-                    <span className="text-sm font-medium">{recipe.name}</span>
+                  </Link>
+                ) : (
+                  <div key={recipe.id} className="group">
+                    <div className="bg-white rounded-2xl p-4 shadow-md transition-shadow">
+                      <div className="relative aspect-square mb-3">
+                        <div className="w-full h-full rounded-full overflow-hidden shadow-lg">
+                          <img 
+                            src={recipe.image} 
+                            alt={recipe.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className={`absolute top-2 left-2 px-3 py-1 rounded-full text-white text-xs font-semibold ${getDifficultyColor(recipe.difficulty)}`}>
+                          {recipe.difficulty}
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <FaClock className="text-gray-600 text-xs" />
+                          <span className="text-xs font-semibold text-gray-700">{recipe.time}</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-gray-900 text-sm grow">{recipe.name}</h3>
+                          <button
+                            onClick={(e) => toggleFavorite(recipe.id, e)}
+                            className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                          >
+                            {favorites.includes(recipe.id) ? (
+                              <FaHeart className="text-red-500" size={18} />
+                            ) : (
+                              <FaRegHeart size={18} />
+                            )}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-400">{categories.find(c => c.id === recipe.categoryId)?.name || 'Plat'}</p>
+                      </div>
+                    </div>
                   </div>
-                </Link>
+                )
               ))}
             </div>
 
-            {/* Pagination dots */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-12">
                 {Array.from({ length: totalPages }, (_, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentPage(index)}
-                    className={`w-5 h-5 rounded-full transition-all duration-300 ${
-                      currentPage === index
-                        ? 'bg-[#7CCB7D] w-15'
-                        : 'bg-gray-300 hover:bg-gray-400'
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`w-10 h-10 rounded-full font-semibold transition-all duration-300 ${
+                      currentPage === index + 1
+                        ? 'bg-[#8ACBFF] text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-100'
                     }`}
                     aria-label={`Page ${index + 1}`}
-                  />
+                  >
+                    {index + 1}
+                  </button>
                 ))}
               </div>
             )}

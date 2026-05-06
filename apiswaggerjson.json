@@ -1,0 +1,1998 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Mon API",
+    "description": "Documentation de mon API Spring Boot",
+    "contact": {
+      "name": "Data-Chef",
+      "email": "DataChef@gmail.com"
+    },
+    "license": {
+      "name": "Apache 2.0"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Gestion de l'authentification et des sessions"
+    },
+    {
+      "name": "Recipes",
+      "description": "Gestion des recettes"
+    },
+    {
+      "name": "User",
+      "description": "Gestion des profils utilisateurs"
+    },
+    {
+      "name": "Password",
+      "description": "Gestion de la réinitialisation et du changement de mot de passe"
+    }
+  ],
+  "paths": {
+    "/api/recipe/create": {
+      "post": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Crée une nouvelle recette",
+        "operationId": "createRecipe",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recipe": {
+                    "$ref": "#/components/schemas/CreateRecipeDTO"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image de la recette (optionnelle)"
+                  }
+                },
+                "required": [
+                  "recipe"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recette créée avec succès",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      }
+    },
+    "/api/password/reset": {
+      "post": {
+        "tags": [
+          "Password"
+        ],
+        "summary": "Réinitialiser le mot de passe",
+        "description": "Valide le token de réinitialisation et met à jour le mot de passe. Le token est à usage unique et expire après 15 minutes.",
+        "operationId": "reset",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "Token de réinitialisation reçu par email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          {
+            "name": "newPassword",
+            "in": "query",
+            "description": "Nouveau mot de passe",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "NewP@ssw0rd!"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mot de passe réinitialisé avec succès"
+          },
+          "400": {
+            "description": "Token invalide, déjà utilisé ou expiré",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "Token expiré"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/password/forgot": {
+      "post": {
+        "tags": [
+          "Password"
+        ],
+        "summary": "Demander une réinitialisation de mot de passe",
+        "description": "Envoie un email contenant un lien de réinitialisation valable 15 minutes. Retourne toujours 200 même si l'email n'existe pas, afin d'éviter l'énumération des comptes.",
+        "operationId": "forgot",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Adresse email du compte à réinitialiser",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "johndoe@example.com"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email envoyé si le compte existe"
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/password/change": {
+      "post": {
+        "tags": [
+          "Password"
+        ],
+        "summary": "Changer le mot de passe (utilisateur connecté)",
+        "description": "Permet à un utilisateur authentifié de changer son mot de passe en fournissant l'ancien. Nécessite un access token valide.",
+        "operationId": "change",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Mot de passe changé avec succès"
+          },
+          "400": {
+            "description": "Ancien mot de passe incorrect",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "Ancien mot de passe incorrect"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Utilisateur introuvable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "User not found"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Créer un compte utilisateur",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Inscription réussie — retourne l'access token JWT dans le body, le refresh token est posé en cookie HttpOnly",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email déjà utilisé ou données invalides",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "Email already in use"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Renouveler l'access token",
+        "description": "Utilise le cookie HttpOnly `refreshToken` pour émettre un nouveau couple access/refresh token (rotation). Si le cookie est absent, expiré ou invalide, la session est invalidée et le cookie est supprimé.",
+        "operationId": "refreshToken",
+        "parameters": [
+          {
+            "name": "refreshToken",
+            "in": "cookie",
+            "description": "Refresh token lu depuis le cookie HttpOnly (envoyé automatiquement par le navigateur)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nouveau access token retourné dans le body, refresh token renouvelé en cookie",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Cookie absent, refresh token expiré ou invalide — cookie supprimé"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Déconnexion de l'appareil courant",
+        "description": "Révoque le refresh token de la session courante et supprime le cookie. L'access token reste valide jusqu'à son expiration.",
+        "operationId": "logout",
+        "parameters": [
+          {
+            "name": "refreshToken",
+            "in": "cookie",
+            "description": "Refresh token lu depuis le cookie HttpOnly",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Déconnexion réussie — cookie supprimé",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": "Logged out from this device"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erreur lors de la révocation du token"
+          }
+        }
+      }
+    },
+    "/api/auth/logout/all": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Déconnexion de tous les appareils",
+        "description": "Révoque l'ensemble des refresh tokens liés au compte. Nécessite un access token valide.",
+        "operationId": "logoutFromAll",
+        "responses": {
+          "200": {
+            "description": "Toutes les sessions révoquées — cookie supprimé",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": "Logged out from all devices"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erreur lors de la révocation globale"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Authentifier un utilisateur",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie — retourne l'access token JWT dans le body, le refresh token est posé en cookie HttpOnly",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants incorrects",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "Bad credentials"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/update": {
+      "patch": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Mettre à jour le profil",
+        "description": "Met à jour les informations du profil (email, username) et optionnellement la photo de profil. La mise à jour de l'image n'est déclenchée que si le hash du fichier envoyé diffère de celui stocké.",
+        "operationId": "updateProfile",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profil mis à jour avec succès",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides ou email/username déjà utilisé",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "Username already exists"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Utilisateur introuvable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "User not found"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur lors de l'upload de l'image",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "user image upload failed"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/recipe/update/{id}": {
+      "patch": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Met à jour une recette existante",
+        "operationId": "updateRecipe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "UUID de la recette",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRecipeDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recette mise à jour",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recette non trouvée"
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      }
+    },
+    "/hello": {
+      "get": {
+        "tags": [
+          "hello-world-controller"
+        ],
+        "operationId": "hello",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/{username}": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Récupérer un profil par nom d'utilisateur",
+        "description": "Retourne les informations publiques du profil correspondant au nom d'utilisateur fourni.",
+        "operationId": "getMyAccountByUsername",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Nom d'utilisateur",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "johndoe"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil trouvé",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Utilisateur introuvable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "User not found"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/search": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Rechercher des utilisateurs",
+        "description": "Retourne la liste des utilisateurs dont le nom d'utilisateur contient la chaîne de recherche (insensible à la casse). Retourne une liste vide si aucun résultat ne correspond.",
+        "operationId": "searchUser",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Chaîne de recherche sur le nom d'utilisateur",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des utilisateurs correspondants (peut être vide)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileDTO"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/recipe/{id}": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Récupère une recette par son ID",
+        "operationId": "getRecipe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "UUID de la recette",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recette trouvée",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recette non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Supprime une recette",
+        "operationId": "deleteRecipe",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "UUID de la recette",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Recette supprimée"
+          },
+          "404": {
+            "description": "Recette non trouvée"
+          }
+        }
+      }
+    },
+    "/api/recipe/search": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Recherche des recettes avec filtres",
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Texte de recherche",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "difficulty",
+            "in": "query",
+            "description": "Niveau de difficulté",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EASY",
+                "MEDIUM",
+                "HARD"
+              ]
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "Liste de tags",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Résultats de la recherche",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recipe/name/{name}": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Récupère une recette par son nom",
+        "operationId": "getRecipeFromName",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Nom de la recette",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recette trouvée",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recette non trouvée"
+          }
+        }
+      }
+    },
+    "/api/recipe/all": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Récupère toutes les recettes",
+        "operationId": "getAllRecipes",
+        "responses": {
+          "200": {
+            "description": "Liste de toutes les recettes",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/{id}": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Supprimer un compte utilisateur",
+        "description": "Supprime définitivement le compte utilisateur ainsi que son image de profil associée.",
+        "operationId": "deleteProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "UUID de l'utilisateur à supprimer",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Compte supprimé avec succès"
+          },
+          "404": {
+            "description": "Utilisateur introuvable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "User not found"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur inattendue",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "message": "An error occurred"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateRecipeDTO": {
+        "type": "object",
+        "description": "Détails de la recette",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nom de la recette",
+            "example": "Tarte aux pommes"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description de la recette",
+            "example": "Une délicieuse tarte aux pommes maison"
+          },
+          "prepTimeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Temps de préparation en minutes",
+            "example": 20
+          },
+          "cookTimeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Temps de cuisson en minutes",
+            "example": 40
+          },
+          "restTimeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Temps de repos en minutes",
+            "example": 0
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "Niveau de difficulté",
+            "enum": [
+              "EASY",
+              "MEDIUM",
+              "HARD"
+            ],
+            "example": "EASY"
+          },
+          "instructions": {
+            "type": "array",
+            "description": "Liste ordonnée des instructions",
+            "items": {
+              "$ref": "#/components/schemas/RecipeInstruction"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags associés à la recette",
+            "example": [
+              "dessert",
+              "végétarien"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "creator": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID du créateur de la recette",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "ingredient": {
+            "type": "array",
+            "description": "Liste des ingrédients",
+            "items": {
+              "$ref": "#/components/schemas/CreateRecipeIngredientDTO"
+            }
+          },
+          "utensil": {
+            "type": "array",
+            "description": "Liste des ustensiles",
+            "items": {
+              "$ref": "#/components/schemas/CreateRecipeUtensilDTO"
+            }
+          },
+          "nutriscore": {
+            "type": "string",
+            "description": "Score nutritionnel",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "example": "B"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateRecipeIngredientDTO": {
+        "type": "object",
+        "description": "Ingrédient à associer à une recette lors de sa création",
+        "properties": {
+          "ingredientId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID de l'ingrédient",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantité de l'ingrédient",
+            "example": 200
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unité de mesure",
+            "enum": [
+              "G",
+              "KG",
+              "ML",
+              "CL",
+              "L",
+              "CAS",
+              "CAC",
+              "PIECE",
+              "PINCEE",
+              "TRANCHE",
+              "GOUSSE",
+              "BOTTE",
+              "SACHET"
+            ],
+            "example": "GRAM"
+          },
+          "note": {
+            "type": "string",
+            "description": "Note de préparation",
+            "example": "Épluché et coupé en dés"
+          },
+          "isOptional": {
+            "type": "boolean",
+            "description": "Indique si l'ingrédient est optionnel",
+            "example": false
+          }
+        },
+        "required": [
+          "ingredientId"
+        ]
+      },
+      "CreateRecipeUtensilDTO": {
+        "type": "object",
+        "description": "Ustensile à associer à une recette lors de sa création",
+        "properties": {
+          "utensilId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID de l'ustensile",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "necessityLevel": {
+            "type": "string",
+            "description": "Niveau de nécessité de l'ustensile",
+            "enum": [
+              "ESSENTIAL",
+              "RECOMMENDED",
+              "OPTIONAL"
+            ],
+            "example": "REQUIRED"
+          },
+          "note": {
+            "type": "string",
+            "description": "Note d'utilisation",
+            "example": "Pour étaler la pâte uniformément"
+          }
+        },
+        "required": [
+          "utensilId"
+        ]
+      },
+      "RecipeInstruction": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "DurationDTO": {
+        "type": "object",
+        "description": "Représentation d'une durée en heures et minutes",
+        "properties": {
+          "minutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Minutes (0-59)",
+            "example": 30
+          },
+          "hours": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Heures",
+            "example": 1
+          }
+        }
+      },
+      "RecipeDTO": {
+        "type": "object",
+        "description": "Représentation complète d'une recette",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifiant unique de la recette",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom de la recette",
+            "example": "Tarte aux pommes"
+          },
+          "prepTime": {
+            "$ref": "#/components/schemas/DurationDTO",
+            "description": "Temps de préparation"
+          },
+          "cookTime": {
+            "$ref": "#/components/schemas/DurationDTO",
+            "description": "Temps de cuisson"
+          },
+          "restTime": {
+            "$ref": "#/components/schemas/DurationDTO",
+            "description": "Temps de repos"
+          },
+          "totalTime": {
+            "$ref": "#/components/schemas/DurationDTO",
+            "description": "Temps total (préparation + cuisson + repos)"
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "Niveau de difficulté",
+            "enum": [
+              "EASY",
+              "MEDIUM",
+              "HARD"
+            ],
+            "example": "EASY"
+          },
+          "serving": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Nombre de portions",
+            "example": 4
+          },
+          "recipeInstructionList": {
+            "type": "array",
+            "description": "Liste des instructions de la recette",
+            "items": {
+              "$ref": "#/components/schemas/RecipeInstruction"
+            }
+          },
+          "recipeIngredientList": {
+            "type": "array",
+            "description": "Liste des ingrédients nécessaires",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredientDTO"
+            }
+          },
+          "recipeUtensilList": {
+            "type": "array",
+            "description": "Liste des ustensiles nécessaires",
+            "items": {
+              "$ref": "#/components/schemas/RecipeUtensilDTO"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags associés à la recette",
+            "example": [
+              "dessert",
+              "végétarien"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "nutriscore": {
+            "type": "string",
+            "description": "Score nutritionnel",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "example": "B"
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "URL de l'image de la recette",
+            "example": "https://cdn.datachef.com/recipes/tarte-pommes.jpg"
+          }
+        }
+      },
+      "RecipeIngredientDTO": {
+        "type": "object",
+        "description": "Ingrédient d'une recette avec ses détails",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID de l'ingrédient",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom de l'ingrédient",
+            "example": "Pomme"
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "URL de l'image de l'ingrédient",
+            "example": "https://cdn.datachef.com/ingredients/pomme.jpg"
+          },
+          "quantity": {
+            "type": "string",
+            "description": "Quantité avec unité formatée",
+            "example": "200g"
+          },
+          "isOptional": {
+            "type": "boolean",
+            "description": "Indique si l'ingrédient est optionnel",
+            "example": false
+          },
+          "note": {
+            "type": "string",
+            "description": "Note de préparation",
+            "example": "Épluché et coupé en dés"
+          }
+        }
+      },
+      "RecipeUtensilDTO": {
+        "type": "object",
+        "description": "Ustensile d'une recette avec ses détails",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID de l'ustensile",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom de l'ustensile",
+            "example": "Rouleau à pâtisserie"
+          },
+          "necessityLevel": {
+            "type": "string",
+            "description": "Niveau de nécessité",
+            "enum": [
+              "ESSENTIAL",
+              "RECOMMENDED",
+              "OPTIONAL"
+            ],
+            "example": "REQUIRED"
+          },
+          "usageNote": {
+            "type": "string",
+            "description": "Note d'utilisation",
+            "example": "Pour étaler la pâte uniformément"
+          },
+          "image": {
+            "type": "string",
+            "description": "URL de l'image de l'ustensile",
+            "example": "https://cdn.datachef.com/utensils/rouleau.jpg"
+          }
+        }
+      },
+      "ChangePasswordDTO": {
+        "type": "object",
+        "description": "Ancien mot de passe, nouveau mot de passe et UUID de l'utilisateur",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "oldPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "description": "Informations d'inscription",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Nom d'utilisateur unique",
+            "example": "john.doe"
+          },
+          "password": {
+            "type": "string",
+            "description": "Mot de passe (min. 8 caractères), chiffre et lettre",
+            "example": "p@ssw0rd"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Adresse e-mail",
+            "example": "john.doe@example.com"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "username"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "description": "Identifiants de connexion",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Nom d'utilisateur",
+            "example": "john.doe"
+          },
+          "password": {
+            "type": "string",
+            "description": "Mot de passe",
+            "example": "p@ssw0rd"
+          }
+        },
+        "required": [
+          "password",
+          "username"
+        ]
+      },
+      "DietType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "Ingredient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namePlural": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "VEGETABLE",
+              "FRUIT",
+              "MEAT",
+              "FISH",
+              "SEAFOOD",
+              "DAIRY",
+              "GRAIN",
+              "SPICE",
+              "CONDIMENT",
+              "HERB",
+              "OIL",
+              "SWEETENER",
+              "NUT",
+              "LEGUME"
+            ]
+          },
+          "aisle": {
+            "type": "string",
+            "enum": [
+              "FRUITS_LEGUMES",
+              "BOUCHERIE",
+              "POISSONNERIE",
+              "EPICERIE_SALEE",
+              "EPICERIE_SUCREE",
+              "FRAIS",
+              "SURGELES",
+              "CONDIMENTS",
+              "AUTRE"
+            ]
+          },
+          "allergens": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dietTags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DietType"
+            }
+          },
+          "commonUnits": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "G",
+                "KG",
+                "ML",
+                "CL",
+                "L",
+                "CAS",
+                "CAC",
+                "PIECE",
+                "PINCEE",
+                "TRANCHE",
+                "GOUSSE",
+                "BOTTE",
+                "SACHET"
+              ]
+            }
+          },
+          "substitutes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "imageKey": {
+            "type": "string"
+          },
+          "recipeIngredients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredient"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "imagekey": {
+            "type": "string"
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileRatingsDTO"
+            }
+          }
+        }
+      },
+      "ProfileRatingsDTO": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/Users"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/Recipe"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comment": {
+            "type": "string"
+          }
+        }
+      },
+      "Recipe": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "prepTimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cookTimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "restTimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRating"
+            }
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "EASY",
+              "MEDIUM",
+              "HARD"
+            ]
+          },
+          "servings": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeInstruction"
+            }
+          },
+          "totalTimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/Users"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recipeIngredients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredient"
+            }
+          },
+          "recipeUtensils": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeUtensil"
+            }
+          },
+          "imageKey": {
+            "type": "string"
+          },
+          "imageHash": {
+            "type": "string"
+          },
+          "nutriscore": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ]
+          }
+        }
+      },
+      "RecipeIngredient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/Recipe"
+          },
+          "ingredient": {
+            "$ref": "#/components/schemas/Ingredient"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "G",
+              "KG",
+              "ML",
+              "CL",
+              "L",
+              "CAS",
+              "CAC",
+              "PIECE",
+              "PINCEE",
+              "TRANCHE",
+              "GOUSSE",
+              "BOTTE",
+              "SACHET"
+            ]
+          },
+          "preparationNote": {
+            "type": "string"
+          },
+          "isOptional": {
+            "type": "boolean"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RecipeUtensil": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipe": {
+
+          },
+          "utensil": {
+            "$ref": "#/components/schemas/Utensil"
+          },
+          "necessityLevel": {
+            "type": "string",
+            "enum": [
+              "ESSENTIAL",
+              "RECOMMENDED",
+              "OPTIONAL"
+            ]
+          },
+          "usageNote": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserRating": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/Users"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/Recipe"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Users": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "passwordHash": {
+            "type": "string"
+          },
+          "imagekey": {
+            "type": "string"
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRating"
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "imageHash": {
+            "type": "string"
+          }
+        }
+      },
+      "Utensil": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "COOKWARE",
+              "CUTLERY",
+              "BAKEWARE",
+              "PREPARATION",
+              "SMALL_APPLIANCES",
+              "MEASURING",
+              "STORAGE",
+              "SERVING",
+              "SPECIALTY"
+            ]
+          },
+          "necessityLevel": {
+            "type": "string",
+            "enum": [
+              "ESSENTIAL",
+              "RECOMMENDED",
+              "OPTIONAL"
+            ]
+          },
+          "imageKey": {
+            "type": "string"
+          },
+          "recipeUtensils": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeUtensil"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateRecipeDTO": {
+        "type": "object",
+        "description": "Données de mise à jour",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nouveau nom de la recette",
+            "example": "Tarte aux pommes revisitée"
+          },
+          "description": {
+            "type": "string",
+            "description": "Nouvelle description",
+            "example": "Une version revisitée de la tarte classique"
+          },
+          "prepTimeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Nouveau temps de préparation en minutes",
+            "example": 25
+          },
+          "cookTimeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Nouveau temps de cuisson en minutes",
+            "example": 35
+          },
+          "restTimeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Nouveau temps de repos en minutes",
+            "example": 10
+          },
+          "difficulty": {
+            "type": "string",
+            "description": "Nouveau niveau de difficulté",
+            "enum": [
+              "EASY",
+              "MEDIUM",
+              "HARD"
+            ],
+            "example": "MEDIUM"
+          },
+          "instructions": {
+            "type": "array",
+            "description": "Nouvelle liste d'instructions",
+            "items": {
+              "$ref": "#/components/schemas/RecipeInstruction"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "description": "Nouveaux tags",
+            "example": [
+              "dessert",
+              "fruits"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "creator": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID du créateur",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "ingredient": {
+            "type": "array",
+            "description": "Nouvelle liste d'ingrédients",
+            "items": {
+              "$ref": "#/components/schemas/CreateRecipeIngredientDTO"
+            }
+          },
+          "utensil": {
+            "type": "array",
+            "description": "Nouvelle liste d'ustensiles",
+            "items": {
+              "$ref": "#/components/schemas/CreateRecipeUtensilDTO"
+            }
+          },
+          "nutriscore": {
+            "type": "string",
+            "description": "Nouveau score nutritionnel",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "example": "A"
+          }
+        }
+      }
+    }
+  }
+}

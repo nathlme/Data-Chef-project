@@ -21,3 +21,16 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Masquer la barre de défilement pour les scrolls horizontaux */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  overflow: -moz-scrollbars-none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;  /* Chrome, Safari and Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
